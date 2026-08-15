@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+
+  --color-background-warm: var(--background-warm);
+  --color-surface-warm: var(--surface-warm);
+  --color-border-warm: var(--border-warm);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-primary-foreground: var(--brand-primary-foreground);
+  --color-gold: var(--gold);
+}
+
+@layer base {
+  :root {
+    --background: #FDFAF6;
+    --foreground: #4C0519;
+    --surface: #FFFBEA;
+    --surface-elevated: #FFFDF8;
+    --surface-muted: #F8F1E4;
+    --border: rgba(136, 19, 55, 0.10);
+    --muted: #5F5660;
+    --muted-foreground: #5F5660;
+    --primary: #650021;
+    --primary-foreground: #FEF3C7;
+    --accent: #D3AA45;
+    --destructive: #B91C1C;
+    --destructive-foreground: #FFFFFF;
+    --success: #059669;
+
+    --background-warm: #F8F1E4;
+    --surface-warm: #FFFBEA;
+    --border-warm: #E7D7C7;
+    --brand-primary: #4C0519;
+    --brand-primary-hover: #6E0D2E;
+    --brand-primary-foreground: #FEF3C7;
+    --gold: #B58A2A;
+  }
+
+  .dark {
+    --background: #110408;
+    --foreground: #FEF3C7;
+    --surface: #1C0A11;
+    --surface-elevated: #2A111B;
+    --surface-muted: #351622;
+    --border: rgba(254, 243, 199, 0.10);
+    --muted: #CFC2BA;
+    --muted-foreground: #CFC2BA;
+    --primary: #FEF3C7;
+    --primary-foreground: #4C0519;
+    --accent: #E0B95A;
+    --destructive: #EF4444;
+    --destructive-foreground: #110408;
+    --success: #10B981;
+
+    --background-warm: #170A10;
+    --surface-warm: #1C0A11;
+    --border-warm: rgba(199, 155, 59, 0.20);
+    --brand-primary: #C79B3B;
+    --brand-primary-hover: #E0B95A;
+    --brand-primary-foreground: #170A10;
+    --gold: #C79B3B;
+  }
+
+  body {
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #fbf6ee;
+}
+::-webkit-scrollbar-thumb {
+  background: #701a75;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #501254;
+}
+
+@keyframes announcement-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.announcement-viewport {
+  overflow: hidden !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  height: 36px !important;
+  max-height: 36px !important;
+}
+
+.announcement-track {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+  animation: announcement-marquee 24s linear infinite;
+  will-change: transform;
+}
+
+.announcement-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
+.announcement-viewport:hover .announcement-track,
+.announcement-viewport:focus-within .announcement-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-track {
+    animation: none !important;
+    transform: none !important;
+  }
+  .announcement-group[aria-hidden="true"] {
+    display: none !important;
+  }
+}
+
+
+/* Premium Micro-animations & Transitions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes entrance {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 200ms ease-out forwards;
+}
+
+.animate-entrance {
+  animation: entrance 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+    transform: none !important;
+  }
+  .animate-fade-in,
+  .animate-entrance {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
