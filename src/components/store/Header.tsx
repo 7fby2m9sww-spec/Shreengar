@@ -47,6 +47,14 @@ export const Header: React.FC<HeaderProps> = ({
   }, [])
   const [categories, setCategories] = useState<Category[]>([])
   
+  const navCategories = categories.filter(
+    cat => {
+      const name = (cat.name || '').trim().toLowerCase()
+      const slug = (cat.slug || '').trim().toLowerCase()
+      return name !== 'kurti' && name !== 'kurtis' && slug !== 'kurti' && slug !== 'kurtis'
+    }
+  )
+  
   // Consume customer/admin session from shared AuthContext
   const { session, logout } = useAuth()
   const [dynamicWishlistCount, setDynamicWishlistCount] = useState<number>(0)
@@ -143,20 +151,19 @@ export const Header: React.FC<HeaderProps> = ({
 
 
           {/* Desktop Category Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 font-serif text-sm font-bold text-foreground">
-            <Link href="/shop" className="hover:text-gold transition-colors">
-              All Collections
-            </Link>
-            {categories.slice(0, 5).map(cat => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                className="hover:text-gold transition-colors"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </nav>
+          {navCategories.length > 0 && (
+            <nav className="hidden lg:flex items-center space-x-6 font-serif text-sm font-bold text-foreground">
+              {navCategories.slice(0, 5).map(cat => (
+                <Link
+                  key={cat.id}
+                  href={`/category/${cat.slug}`}
+                  className="hover:text-gold transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Action Tools: Search, Wishlist, Cart, Profile */}
           <div className="flex items-center space-x-3 sm:space-x-5">
@@ -352,21 +359,22 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           </form>
 
-          <nav className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
-            <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold">
-              All Collections
-            </Link>
-            {categories.map(cat => (
-              <Link
-                key={cat.id}
-                href={`/category/${cat.slug}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-gold"
-              >
-                {cat.name}
-              </Link>
-            ))}
+          {navCategories.length > 0 && (
+            <nav className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
+              {navCategories.map(cat => (
+                <Link
+                  key={cat.id}
+                  href={`/category/${cat.slug}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="hover:text-gold"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </nav>
+          )}
 
+          <div className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
             {hasSession ? (
               <>
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
@@ -396,7 +404,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </Link>
               </div>
             )}
-          </nav>
+          </div>
         </div>
       )}
     </header>
