@@ -206,7 +206,7 @@ export default async function HomePage() {
                       href="/shop?filter=collections"
                       className="text-xs sm:text-sm font-semibold text-[#8A3A19] hover:text-[#5C0B26] dark:text-[#D4AF37] dark:hover:text-[#E0B95A] flex items-center space-x-1 transition-colors pr-0 lg:pr-48"
                     >
-                      <span>View All Collections</span>
+                      <span>View All</span>
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>

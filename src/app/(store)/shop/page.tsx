@@ -67,7 +67,7 @@ export default async function ShopPage({
 
   return (
     <div className="space-y-8 pb-16">
-      <Breadcrumb items={[{ label: 'Shop All Collections' }]} />
+      <Breadcrumb items={[{ label: 'Shop' }]} />
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border">
         <div>
@@ -75,7 +75,7 @@ export default async function ShopPage({
             Royal Ethnic Collection
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Discover {totalCount} handcrafted silk sarees, flared Anarkalis, and designer Kurtis.
+            Discover {totalCount} handcrafted silk sarees, flared Anarkalis, and designer sets.
           </p>
         </div>
 
@@ -148,7 +148,7 @@ export default async function ShopPage({
                     !collectionId ? 'bg-rose-950 text-amber-100 font-bold' : 'text-muted-foreground hover:bg-amber-100/60 dark:hover:bg-rose-950/40'
                   }`}
                 >
-                  All Collections
+                  All
                 </Link>
               </li>
               {collections.map(col => (

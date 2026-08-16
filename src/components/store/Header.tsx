@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
     cat => {
       const name = (cat.name || '').trim().toLowerCase()
       const slug = (cat.slug || '').trim().toLowerCase()
-      return !name.includes('kurti') && !slug.includes('kurti')
+      return !name.includes('kurti') && !slug.includes('kurti') && !name.includes('all collection') && !slug.includes('all-collection')
     }
   )
   
@@ -172,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
               <input
                 type="text"
                 name="search"
-                placeholder="Search Anarkalis, Kurtis..."
+                placeholder="Search Anarkalis..."
                 className="w-44 lg:w-56 pl-9 pr-4 py-1.5 text-xs bg-surface-warm border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-64 focus:ring-1 focus:ring-gold transition-all"
               />
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
@@ -353,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
             <input
               type="text"
               name="search"
-              placeholder="Search Anarkalis, Kurtis..."
+              placeholder="Search Anarkalis..."
               className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-border rounded-lg text-foreground"
             />
             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
