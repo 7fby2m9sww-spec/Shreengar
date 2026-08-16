@@ -25,6 +25,7 @@ import {
 } from '@/actions/support/actions'
 import { createClient } from '@/lib/supabase/client'
 import { useCart } from '@/context/CartContext'
+import { normalizeConversation, Conversation } from '@/lib/supportConversation'
 
 const TOPICS = [
   'Order issue',
@@ -35,15 +36,6 @@ const TOPICS = [
   'Return or exchange',
   'Other'
 ]
-
-interface Conversation {
-  id: string
-  subject: string
-  topic: string
-  status: string
-  priority: string
-  last_message_at: string
-}
 
 interface Message {
   id: string
@@ -107,7 +99,7 @@ export function SupportPortal() {
     setConversationsLoading(true)
     const res = await getConversationsAction({})
     if (res.success && res.data) {
-      setConversations(res.data as Conversation[])
+      setConversations((res.data as any[]).map(normalizeConversation))
     }
     setConversationsLoading(false)
   }
@@ -133,9 +125,11 @@ export function SupportPortal() {
   const loadMessages = async (convId: string) => {
     setMessagesLoading(true)
     const res = await getMessagesAction(convId)
-    if (res.success && res.data && res.conversation) {
+    if (res.success && res.data) {
       setMessages(res.data as Message[])
-      setActiveConversation(res.conversation as Conversation)
+      if (res.conversation) {
+        setActiveConversation(prev => normalizeConversation({ ...prev, ...res.conversation }))
+      }
       setChatError(null)
     } else {
       setChatError(res.error || 'Failed to load conversation.')
@@ -144,7 +138,7 @@ export function SupportPortal() {
   }
 
   useEffect(() => {
-    if (activeConversation) {
+    if (activeConversation?.id) {
       loadMessages(activeConversation.id)
     }
   }, [activeConversation?.id])
@@ -162,7 +156,7 @@ export function SupportPortal() {
 
   // 6. Realtime Message Subscriptions
   useEffect(() => {
-    if (!activeConversation || screen !== 'chat') return
+    if (!activeConversation?.id || screen !== 'chat') return
 
     const supabase = createClient()
     const channel = supabase
@@ -178,15 +172,13 @@ export function SupportPortal() {
         (payload) => {
           const newMsg = payload.new as Message
           if (newMsg.sender_type === 'admin' && (newMsg as any).is_internal_note === true) {
-            // Exclude internal notes for customers
             return
           }
           setMessages(prev => {
             if (prev.some(m => m.id === newMsg.id)) return prev
             return [...prev, newMsg]
           })
-          // Mark conversation as read
-          getMessagesAction(activeConversation.id)
+          loadMessages(activeConversation.id)
         }
       )
       .subscribe()
@@ -198,7 +190,7 @@ export function SupportPortal() {
 
   // 7. Polling fallback for messages
   useEffect(() => {
-    if (!activeConversation || screen !== 'chat') return
+    if (!activeConversation?.id || screen !== 'chat') return
     const interval = setInterval(() => {
       loadMessages(activeConversation.id)
     }, 10000)
@@ -219,10 +211,20 @@ export function SupportPortal() {
 
     setCreating(false)
     if (res.success && res.conversationId) {
+      const newConv = normalizeConversation(res.conversation || {
+        id: res.conversationId,
+        subject: subject || 'Support Request',
+        topic: topic || 'General',
+        status: 'open',
+        priority: 'normal',
+        last_message_at: new Date().toISOString()
+      })
+
       setSubject('')
       setInitialMessage('')
       setOrderId('')
-      setActiveConversation({ id: res.conversationId } as any)
+      setActiveConversation(newConv)
+      setConversations(prev => [newConv, ...prev.filter(c => c.id !== newConv.id)])
       setScreen('chat')
     } else {
       setCreateError(res.error || 'Failed to start conversation.')
@@ -328,38 +330,44 @@ export function SupportPortal() {
                         </div>
                       </div>
                     ) : (
-                      conversations.map(conv => (
-                        <button
-                          key={conv.id}
-                          onClick={() => {
-                            setActiveConversation(conv)
-                            setScreen('chat')
-                          }}
-                          className="w-full text-left p-3.5 bg-surface rounded-xl border border-border hover:border-amber-900/20 dark:hover:border-amber-900/40 shadow-sm transition-all hover:scale-[1.01] cursor-pointer space-y-2"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-xs text-gray-900 dark:text-amber-100 line-clamp-1 flex-1 pr-2">{conv.subject}</span>
-                            <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full capitalize ${
-                              conv.status === 'open' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400' :
-                              conv.status === 'waiting_for_customer' ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400' :
-                              conv.status === 'resolved' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400' :
-                              'bg-gray-100 dark:bg-rose-950/30 text-gray-800 dark:text-amber-200/50'
-                            }`}>
-                              {conv.status.replace(/_/g, ' ')}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-amber-200/30 font-medium">
-                            <span className="flex items-center space-x-1">
-                              <Tag className="w-3 h-3 text-amber-700 dark:text-amber-400" />
-                              <span>{conv.topic}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="w-3 h-3" />
-                              <span>{new Date(conv.last_message_at).toLocaleDateString()}</span>
-                            </span>
-                          </div>
-                        </button>
-                      ))
+                      conversations.map(conv => {
+                        const safeConv = normalizeConversation(conv)
+                        const statusText = (safeConv.status || 'open').replace(/_/g, ' ')
+                        return (
+                          <button
+                            key={safeConv.id}
+                            onClick={() => {
+                              setActiveConversation(safeConv)
+                              setScreen('chat')
+                            }}
+                            className="w-full text-left p-3.5 bg-surface rounded-xl border border-border hover:border-amber-900/20 dark:hover:border-amber-900/40 shadow-sm transition-all hover:scale-[1.01] cursor-pointer space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-xs text-gray-900 dark:text-amber-100 line-clamp-1 flex-1 pr-2">
+                                {safeConv.subject || 'Support Request'}
+                              </span>
+                              <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                                safeConv.status === 'open' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400' :
+                                safeConv.status === 'waiting_for_customer' ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400' :
+                                safeConv.status === 'resolved' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400' :
+                                'bg-gray-100 dark:bg-rose-950/30 text-gray-800 dark:text-amber-200/50'
+                              }`}>
+                                {statusText}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-amber-200/30 font-medium">
+                              <span className="flex items-center space-x-1">
+                                <Tag className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+                                <span>{safeConv.topic || 'General'}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <Calendar className="w-3 h-3" />
+                                <span>{new Date(safeConv.last_message_at || Date.now()).toLocaleDateString()}</span>
+                              </span>
+                            </div>
+                          </button>
+                        )
+                      })
                     )}
                   </div>
                 </div>
@@ -469,11 +477,15 @@ export function SupportPortal() {
                       <ChevronLeft className="w-4.5 h-4.5 text-muted-foreground" />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-xs text-foreground truncate pr-2">{activeConversation.subject}</h4>
+                      <h4 className="font-bold text-xs text-foreground truncate pr-2">
+                        {activeConversation.subject || 'Support Request'}
+                      </h4>
                       <div className="flex items-center space-x-2 text-[10px] text-muted-foreground mt-0.5">
-                        <span className="capitalize">{activeConversation.status.replace(/_/g, ' ')}</span>
+                        <span className="capitalize">
+                          {(activeConversation.status || 'open').replace(/_/g, ' ')}
+                        </span>
                         <span>•</span>
-                        <span>{activeConversation.topic}</span>
+                        <span>{activeConversation.topic || 'General'}</span>
                       </div>
                     </div>
                   </div>
@@ -514,7 +526,7 @@ export function SupportPortal() {
                                 {msg.message}
                               </div>
                               <span className="text-[9px] text-muted-foreground px-1 font-medium">
-                                {isCustomer ? 'You' : 'Agent'} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {isCustomer ? 'You' : 'Agent'} • {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                           )

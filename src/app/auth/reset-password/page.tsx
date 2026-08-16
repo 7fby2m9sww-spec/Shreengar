@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { resetPasswordAction } from '@/services/auth'
 import { Lock, CheckCircle2 } from 'lucide-react'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -47,8 +48,8 @@ export default function ResetPasswordPage() {
 
       <div className="relative z-10 w-full max-w-md bg-amber-50 rounded-2xl p-8 shadow-2xl border border-amber-500/30 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-300 flex items-center justify-center mx-auto border border-amber-500">
-            <Lock className="w-6 h-6" />
+          <div className="flex justify-center pb-1">
+            <ShreengarLogo href="/" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-rose-950">Set New Password</h1>
           <p className="text-xs text-rose-900/70">Create a secure new password for your Shreengar account</p>

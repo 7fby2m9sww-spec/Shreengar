@@ -67,7 +67,7 @@ export default async function NotificationsPage() {
   notificationsList.push({
     id: 'welcome',
     title: 'Welcome to Shreengar Couture',
-    message: `Dear ${customerName}, thank you for joining Shreengar. Explore our Royal Ethnic Couture collections with code FESTIVE20 for 20% off.`,
+    message: `Dear ${customerName}, thank you for joining Shreengar. Explore our Royal Ethnic Couture collections and enjoy exclusive promotional offers on your royal purchase.`,
     date: 'July 14, 2026',
     type: 'system',
     icon: Gift,

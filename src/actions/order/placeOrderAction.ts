@@ -47,9 +47,46 @@ export async function placeOrderInternal(
     return { success: false, error: 'Your cart is empty.' };
   }
 
-  // 3. Force prepaid - reject COD
-  if (input.paymentMethod === 'cod') {
-    return { success: false, error: 'Cash on Delivery (COD) is not supported.' };
+  // 4. Validate coupon code server-side before atomic creation if provided
+  let validatedCouponCode: string | null = null;
+  if (input.couponCode && input.couponCode.trim()) {
+    const { validateCoupon } = await import('../../services/store.ts');
+    
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const userEmail = userProfile?.email || null;
+
+    const formattedCartItems = cartItems.map((item: any) => ({
+      productId: item.variant?.product_id || item.product_id || '',
+      categoryId: item.variant?.product?.category_id || item.category_id || '',
+      price: item.unit_price || item.variant?.selling_price || 0,
+      quantity: item.quantity || 1
+    }));
+
+    const cartSubtotal = cartItems.reduce((sum: number, item: any) => {
+      const p = item.unit_price || item.variant?.selling_price || 0;
+      return sum + (p * item.quantity);
+    }, 0);
+
+    const couponVal = await validateCoupon(
+      input.couponCode.trim(),
+      cartSubtotal,
+      userId,
+      userEmail,
+      formattedCartItems
+    );
+
+    if (!couponVal.valid) {
+      return {
+        success: false,
+        error: couponVal.message || 'The applied coupon is no longer valid for this order.'
+      };
+    }
+    validatedCouponCode = input.couponCode.trim().toUpperCase();
   }
 
   // 5. Validate inventory for all items in the cart
@@ -89,7 +126,7 @@ export async function placeOrderInternal(
     p_user_id: userId,
     p_shipping_address_id: address.id,
     p_billing_address_id: address.id,
-    p_coupon_code: input.couponCode || null,
+    p_coupon_code: validatedCouponCode,
     p_payment_method: input.paymentMethod,
     p_cart_items: rpcCartItems
   });

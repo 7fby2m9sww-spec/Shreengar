@@ -21,6 +21,8 @@ import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@teispace/next-themes'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { MiniCart } from '@/components/store/MiniCart'
+import { CouponAnnouncementBar } from '@/components/store/CouponAnnouncementBar'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 interface HeaderProps {
   cartCount?: number
@@ -122,23 +124,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-surface-warm/95 backdrop-blur-md border-b border-border-warm transition-all font-sans">
-      {/* Top Announcement Bar — Deep Royal Maroon with Continuous Marquee */}
-      <div className="announcement-viewport bg-rose-950 text-amber-100 text-xs h-9 border-b border-amber-400/20 shadow-sm overflow-hidden whitespace-nowrap flex items-center">
-        <div className="announcement-track flex flex-row items-center whitespace-nowrap min-w-max">
-          {/* Primary Dynamic Group */}
-          <div className="announcement-group inline-flex items-center space-x-6 px-6 shrink-0 whitespace-nowrap">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-medium tracking-wide">Festive Collection 2026 Live! Free Express Shipping on Orders Above ₹2,000</span>
-            <span className="text-amber-400 font-bold font-serif px-1">| Use Code: FESTIVE20</span>
-          </div>
-          {/* Duplicate Dynamic Group for Seamless Infinite Loop */}
-          <div className="announcement-group inline-flex items-center space-x-6 px-6 shrink-0 whitespace-nowrap" aria-hidden="true">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-medium tracking-wide">Festive Collection 2026 Live! Free Express Shipping on Orders Above ₹2,000</span>
-            <span className="text-amber-400 font-bold font-serif px-1">| Use Code: FESTIVE20</span>
-          </div>
-        </div>
-      </div>
+      {/* Top Announcement Bar — Dynamic Realtime Coupon Ticker */}
+      <CouponAnnouncementBar />
 
       {/* Main Navigation Bar */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -151,30 +138,8 @@ export const Header: React.FC<HeaderProps> = ({
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Brand Logo: Combined Lockup */}
-          <Link
-            href="/"
-            aria-label="Shreengar homepage"
-            className="relative block aspect-[831/176] w-[155px] shrink-0 md:w-[190px] lg:w-[215px] xl:w-[230px] transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/50"
-          >
-            <Image
-              src="/branding/shreengar-header-lockup-light-v3.png"
-              alt="Shreengar"
-              fill
-              priority
-              unoptimized
-              className="object-contain dark:hidden"
-            />
-            <Image
-              src="/branding/shreengar-header-lockup-dark-v3.png"
-              alt=""
-              aria-hidden="true"
-              fill
-              priority
-              unoptimized
-              className="hidden object-contain dark:block"
-            />
-          </Link>
+          {/* Unified Gold Brand Logo */}
+          <ShreengarLogo />
 
 
           {/* Desktop Category Navigation */}

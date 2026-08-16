@@ -211,7 +211,7 @@ export async function createConversationAction(input: {
   subject: string
   message: string
   orderId?: string
-}): Promise<{ success: boolean; conversationId?: string; error?: string }> {
+}): Promise<{ success: boolean; conversationId?: string; conversation?: any; error?: string }> {
   try {
     const customerId = await getAuthCustomerId()
 
@@ -261,7 +261,7 @@ export async function createConversationAction(input: {
         priority: 'normal',
         last_message_at: new Date().toISOString()
       })
-      .select('id')
+      .select('*')
       .single()
 
     if (convErr || !conv) {
@@ -284,7 +284,7 @@ export async function createConversationAction(input: {
 
     revalidatePath('/admin/support')
 
-    return { success: true, conversationId: conv.id }
+    return { success: true, conversationId: conv.id, conversation: conv }
   } catch (err: any) {
     return { success: false, error: err.message }
   }

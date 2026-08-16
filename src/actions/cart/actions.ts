@@ -14,18 +14,18 @@ import {
 } from '@/services/store'
 import { LocalCartItem, Coupon } from '@/types/database'
 
-async function getAuthUserId(): Promise<{ userId: string | null; isAdmin: boolean }> {
+async function getAuthUserId(): Promise<{ userId: string | null; userEmail: string | null; isAdmin: boolean }> {
   try {
     const session = await resolveApplicationSession();
     if (session.type === 'customer') {
-      return { userId: session.customerId, isAdmin: false };
+      return { userId: session.customerId, userEmail: session.email, isAdmin: false };
     }
     if (session.type === 'admin') {
-      return { userId: null, isAdmin: true };
+      return { userId: null, userEmail: session.email, isAdmin: true };
     }
-    return { userId: null, isAdmin: false };
+    return { userId: null, userEmail: null, isAdmin: false };
   } catch {
-    return { userId: null, isAdmin: false };
+    return { userId: null, userEmail: null, isAdmin: false };
   }
 }
 
@@ -191,11 +191,14 @@ export async function getCartAction() {
   }
 }
 
-export async function validateCouponAction(code: string, subtotal: number): Promise<{ valid: boolean; coupon?: Coupon; message?: string }> {
+export async function validateCouponAction(
+  code: string,
+  subtotal: number,
+  cartItems?: { productId: string; categoryId?: string; price: number; quantity: number }[]
+): Promise<{ valid: boolean; coupon?: Coupon; discountAmount?: number; message?: string }> {
   try {
-    const { userId } = await getAuthUserId()
-    if (!userId) return { valid: false, message: 'Authentication required.' }
-    return await validateCoupon(code, subtotal)
+    const { userId, userEmail } = await getAuthUserId()
+    return await validateCoupon(code, subtotal, userId, userEmail, cartItems)
   } catch (err: any) {
     return { valid: false, message: err.message }
   }

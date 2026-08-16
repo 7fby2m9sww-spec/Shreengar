@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Breadcrumb } from '@/components/store/Breadcrumb'
 import { createRazorpayOrder, verifyRazorpaySignature, isPaymentGatewayEnabled } from '@/services/payment'
 import { ShippingAddress } from '@/types/database'
-import { ShieldCheck, CreditCard, Smartphone, Banknote, MapPin } from 'lucide-react'
+import { ShieldCheck, CreditCard, Smartphone, MapPin, Tag, CheckCircle2, X } from 'lucide-react'
 import { formatINR } from '@/lib/utils'
 import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
@@ -21,6 +21,10 @@ export default function CheckoutPage() {
     totals,
     isLoading: cartLoading,
     clearCart,
+    appliedCoupon,
+    appliedCouponCode,
+    applyCoupon,
+    removeCoupon,
     shippingQuoteId,
     shippingQuoteError,
     setShippingPincode
@@ -33,6 +37,11 @@ export default function CheckoutPage() {
   const [isPlacing, setIsPlacing] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isGatewayEnabled, setIsGatewayEnabled] = useState(true)
+
+  // Coupon state in checkout
+  const [checkoutCouponInput, setCheckoutCouponInput] = useState('')
+  const [checkoutCouponLoading, setCheckoutCouponLoading] = useState(false)
+  const [checkoutCouponError, setCheckoutCouponError] = useState<string | null>(null)
 
   useEffect(() => {
     isPaymentGatewayEnabled().then(setIsGatewayEnabled)
@@ -74,6 +83,19 @@ export default function CheckoutPage() {
     }
   }, [selectedAddressId, addresses, setShippingPincode])
 
+  const handleApplyCouponInCheckout = async () => {
+    if (!checkoutCouponInput.trim()) return
+    setCheckoutCouponLoading(true)
+    setCheckoutCouponError(null)
+    const res = await applyCoupon(checkoutCouponInput)
+    if (res.valid) {
+      setCheckoutCouponInput('')
+    } else {
+      setCheckoutCouponError(res.message || 'Invalid coupon code.')
+    }
+    setCheckoutCouponLoading(false)
+  }
+
   if (authLoading || cartLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -83,7 +105,7 @@ export default function CheckoutPage() {
   }
 
   const subtotal = totals.subtotal
-  const discount = totals.discount + totals.couponDiscount
+  const discount = totals.couponDiscount
   const total = totals.grandTotal
 
   const handlePlaceOrder = async () => {
@@ -96,12 +118,12 @@ export default function CheckoutPage() {
     setErrorMsg(null)
 
     try {
-      const couponCode = typeof window !== 'undefined' ? localStorage.getItem('shreengar_applied_coupon') || undefined : undefined
+      const couponCodeToPass = appliedCouponCode || undefined
 
       const orderRes = await placeOrderAction({
         addressId: selectedAddressId,
         paymentMethod,
-        couponCode,
+        couponCode: couponCodeToPass,
         shippingQuoteId
       })
 
@@ -109,10 +131,6 @@ export default function CheckoutPage() {
         setErrorMsg(orderRes.error || 'Failed to place order. Please try again.')
         setIsPlacing(false)
         return
-      }
-
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('shreengar_applied_coupon')
       }
 
       if (!isGatewayEnabled) {
@@ -171,7 +189,7 @@ export default function CheckoutPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Address & Payment (8 cols) */}
+        {/* Left Column: Address, Payment & Coupon (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           {/* Step 1: Shipping Address Selection */}
           <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-4">
@@ -239,11 +257,12 @@ export default function CheckoutPage() {
               <h2 className="font-serif text-lg font-bold text-foreground">Select Payment Option</h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* UPI Option */}
               <button
+                type="button"
                 onClick={() => setPaymentMethod('upi')}
-                className={`p-4 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
+                className={`p-4 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
                   paymentMethod === 'upi'
                     ? 'border-rose-950 bg-surface-muted/50 ring-2 ring-rose-950/20'
                     : 'border-border bg-surface hover:border-border'
@@ -258,8 +277,9 @@ export default function CheckoutPage() {
 
               {/* Card Option */}
               <button
+                type="button"
                 onClick={() => setPaymentMethod('card')}
-                className={`p-4 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
+                className={`p-4 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
                   paymentMethod === 'card'
                     ? 'border-rose-950 bg-surface-muted/50 ring-2 ring-rose-950/20'
                     : 'border-border bg-surface hover:border-border'
@@ -271,8 +291,6 @@ export default function CheckoutPage() {
                   <span className="text-[10px] text-muted-foreground">Visa, Mastercard, RuPay</span>
                 </div>
               </button>
-
-              {/* COD Option disabled/hidden for Speed Post shippable orders */}
             </div>
 
             {!isGatewayEnabled && (
@@ -291,6 +309,79 @@ export default function CheckoutPage() {
                   className="w-full px-3 py-2 text-xs bg-surface border border-border rounded-lg text-foreground font-mono"
                   placeholder="e.g. mobile@upi"
                 />
+              </div>
+            )}
+          </div>
+
+          {/* Step 3: Applied Promotional Coupon */}
+          <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center space-x-3">
+                <div className="w-7 h-7 rounded-full bg-rose-950 text-amber-100 font-bold text-xs flex items-center justify-center">
+                  3
+                </div>
+                <h2 className="font-serif text-lg font-bold text-foreground">Promotional Coupon</h2>
+              </div>
+              {appliedCouponCode && (
+                <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full flex items-center space-x-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Applied</span>
+                </span>
+              )}
+            </div>
+
+            {appliedCouponCode ? (
+              <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl">
+                    <Tag className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono font-bold text-sm text-emerald-950 tracking-wider">{appliedCouponCode}</span>
+                      {(appliedCoupon?.first_time_only || appliedCoupon?.target_type === 'first_time_buyers') && (
+                        <span className="text-[9px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded">
+                          1st Order Only
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-emerald-700 mt-0.5">
+                      Discount of <span className="font-bold">{formatINR(totals.couponDiscount)}</span> applied to your order.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removeCoupon}
+                  className="text-xs text-red-600 hover:text-red-800 font-bold px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 transition-colors cursor-pointer flex items-center space-x-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Remove</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={checkoutCouponInput}
+                    onChange={e => { setCheckoutCouponInput(e.target.value.toUpperCase()); setCheckoutCouponError(null) }}
+                    onKeyDown={e => e.key === 'Enter' && handleApplyCouponInCheckout()}
+                    placeholder="Have a promo code? Enter here..."
+                    className="flex-1 px-3 py-2.5 text-xs bg-surface border border-border rounded-xl text-foreground font-mono uppercase tracking-wider"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCouponInCheckout}
+                    disabled={checkoutCouponLoading || !checkoutCouponInput.trim()}
+                    className="px-4 py-2.5 bg-rose-950 text-amber-100 text-xs font-bold rounded-xl hover:bg-rose-900 disabled:opacity-50 transition-colors cursor-pointer"
+                  >
+                    {checkoutCouponLoading ? 'Validating...' : 'Apply Code'}
+                  </button>
+                </div>
+                {checkoutCouponError && (
+                  <p className="text-xs text-red-600 font-medium">{checkoutCouponError}</p>
+                )}
               </div>
             )}
           </div>
@@ -330,10 +421,13 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{formatINR(subtotal)}</span>
               </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-emerald-700">
-                  <span>Discount</span>
-                  <span>-{formatINR(discount)}</span>
+              {totals.couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-700 font-medium">
+                  <span className="flex items-center space-x-1">
+                    <Tag className="w-3 h-3 text-emerald-600 inline" />
+                    <span>Coupon ({appliedCouponCode})</span>
+                  </span>
+                  <span className="font-bold">− {formatINR(totals.couponDiscount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -356,7 +450,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-base font-serif font-bold text-foreground border-t border-border pt-3">
                 <span>Total Amount Payable</span>
-                <span>{formatINR(total)}</span>
+                <span className="text-rose-950 dark:text-amber-300">{formatINR(total)}</span>
               </div>
             </div>
             {shippingQuoteError && (
@@ -368,7 +462,7 @@ export default function CheckoutPage() {
             <button
               onClick={handlePlaceOrder}
               disabled={isPlacing || !!shippingQuoteError}
-              className="w-full py-4 px-6 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-sm rounded-xl shadow-xl transition-all hover:scale-[1.01] flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 px-6 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-sm rounded-xl shadow-xl transition-all hover:scale-[1.01] flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isPlacing ? (
                 <span>{isGatewayEnabled ? 'Verifying Payment...' : 'Placing Test Order...'}</span>

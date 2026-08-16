@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Send, CheckCircle2, ShieldCheck, Heart } from 'lucide-react'
 import { FooterConfig } from '@/types/database'
 import { DEFAULT_FOOTER_CONFIG } from '@/constants/footer'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 interface FooterProps {
   config?: FooterConfig
@@ -38,22 +39,19 @@ export const Footer: React.FC<FooterProps> = ({ config: propConfig }) => {
     .filter(item => item.enabled !== false)
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
 
+  const isNewsletterEnabled = Boolean(config.newsletter?.enabled) && config.newsletter.enabled !== false
+
   return (
     <footer className="bg-surface-warm text-foreground pt-16 pb-8 border-t border-border-warm transition-colors font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-border-warm">
-          {/* Brand & Store Overview (2 cols) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-12 border-b border-border-warm">
+          {/* Brand & Store Overview */}
           {config.brand.enabled !== false && (
-            <div className="lg:col-span-2 space-y-4">
+            <div className={isNewsletterEnabled ? 'lg:col-span-4 space-y-4' : 'lg:col-span-6 space-y-4'}>
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full bg-brand-primary text-gold border border-gold/30 font-serif font-bold flex items-center justify-center text-lg shadow-md">
-                  {config.brand.name ? config.brand.name.charAt(0).toUpperCase() : 'S'}
-                </div>
-                <span className="font-serif text-xl font-bold tracking-wider text-foreground uppercase">
-                  {config.brand.name || 'SHREENGAR'}
-                </span>
+                <ShreengarLogo title={config.brand.name} />
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed font-serif max-w-sm">
+              <p className="text-xs text-muted-foreground leading-relaxed font-serif max-w-md">
                 {config.brand.description}
               </p>
               <div className="text-xs text-muted-foreground space-y-1.5 font-mono pt-1">
@@ -83,7 +81,7 @@ export const Footer: React.FC<FooterProps> = ({ config: propConfig }) => {
 
           {/* Quick Navigation Links */}
           {config.quickLinks.enabled !== false && (
-            <div className="space-y-3">
+            <div className={isNewsletterEnabled ? 'lg:col-span-2 space-y-3' : 'lg:col-span-3 space-y-3'}>
               <h4 className="font-serif text-xs font-bold tracking-widest uppercase text-gold">
                 {config.quickLinks.heading || 'Quick Links'}
               </h4>
@@ -115,7 +113,7 @@ export const Footer: React.FC<FooterProps> = ({ config: propConfig }) => {
 
           {/* Policies & Compliance */}
           {config.policies.enabled !== false && (
-            <div className="space-y-3">
+            <div className="lg:col-span-3 space-y-3">
               <h4 className="font-serif text-xs font-bold tracking-widest uppercase text-gold">
                 {config.policies.heading || 'Policies & Compliance'}
               </h4>
@@ -146,8 +144,8 @@ export const Footer: React.FC<FooterProps> = ({ config: propConfig }) => {
           )}
 
           {/* Newsletter Subscription */}
-          {config.newsletter.enabled !== false && (
-            <div className="space-y-3">
+          {isNewsletterEnabled && (
+            <div className="lg:col-span-3 space-y-3">
               <h4 className="font-serif text-xs font-bold tracking-widest uppercase text-gold">
                 {config.newsletter.heading || 'Festive Circle'}
               </h4>

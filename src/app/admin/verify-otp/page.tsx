@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { adminVerifyOtpAction, adminResendOtpAction } from '@/services/auth'
 import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react'
 import { useActionState } from 'react'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 function AdminVerifyOtpForm() {
   const searchParams = useSearchParams()
@@ -59,8 +60,8 @@ function AdminVerifyOtpForm() {
   return (
     <div className="max-w-md w-full bg-amber-50 rounded-2xl p-8 shadow-2xl border border-amber-900/20 space-y-6 relative z-10 font-sans dark:bg-[#211318] dark:border-[#5D3944]">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-300 mx-auto flex items-center justify-center shadow-lg border border-amber-500/40">
-          <ShieldCheck className="w-6 h-6" />
+        <div className="flex justify-center pb-1">
+          <ShreengarLogo href="/" />
         </div>
         <span className="text-[10px] uppercase tracking-[0.25em] font-bold text-amber-800 dark:text-[#FFF4DC]">
           Shreengar Security Engine

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2D696" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#C5A059" />
+    </linearGradient>
+  </defs>
+  <g fill="url(#goldGrad)" stroke="url(#goldGrad)">
+    
+  <!-- Outer Octagonal Diamond Frame -->
+  <path d="M256,36 L432,212 L432,300 L256,476 L80,300 L80,212 Z" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" fill="none" />
+  <!-- Inner Accent Frame -->
+  <path d="M256,56 L412,212 L412,300 L256,456 L100,300 L100,212 Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" fill="none" />
+  
+  <!-- Top & Bottom Heritage Arch Motifs -->
+  <path d="M256,16 L246,36 L256,46 L266,36 Z" stroke="none" />
+  <path d="M256,466 L246,476 L256,496 L266,476 Z" stroke="none" />
+  <circle cx="256" cy="24" r="3.5" stroke="none" />
+  <circle cx="256" cy="488" r="3.5" stroke="none" />
+
+  <!-- Left & Right Heritage Diamonds -->
+  <path d="M60,256 L80,246 L90,256 L80,266 Z" stroke="none" />
+  <path d="M422,256 L432,246 L452,256 L432,266 Z" stroke="none" />
+  <circle cx="68" cy="256" r="3.5" stroke="none" />
+  <circle cx="444" cy="256" r="3.5" stroke="none" />
+
+  <!-- Corner Decorative Filigree Flourishes -->
+  <path d="M120,120 Q140,140 160,120" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.75" />
+  <path d="M392,120 Q372,140 352,120" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.75" />
+  <path d="M120,392 Q140,372 160,392" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.75" />
+  <path d="M392,392 Q372,372 352,392" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.75" />
+
+  <!-- Central Luxury Serif S Spine -->
+  <path d="
+    M 318,172
+    C 318,150 298,132 264,132
+    C 226,132 196,152 196,182
+    C 196,212 222,228 266,242
+    C 314,258 344,278 344,322
+    C 344,372 300,392 250,392
+    C 198,392 166,366 164,324
+    L 194,322
+    C 196,348 218,366 250,366
+    C 284,366 312,348 312,322
+    C 312,290 284,276 240,260
+    C 192,244 166,224 166,182
+    C 166,136 208,106 264,106
+    C 312,106 344,132 346,172
+    Z
+  " stroke="none" />
+
+  <!-- Teardrop Terminals -->
+  <circle cx="332" cy="168" r="8" stroke="none" />
+  <circle cx="178" cy="326" r="8" stroke="none" />
+
+  <!-- Symmetrical Accent Dots -->
+  <circle cx="256" cy="74" r="3" stroke="none" />
+  <circle cx="256" cy="438" r="3" stroke="none" />
+
+  </g>
+</svg>

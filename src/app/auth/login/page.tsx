@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { sendLoginOtpAction } from '@/actions/auth/sendLoginOtpAction'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 function LoginContent() {
   const router = useRouter()
@@ -88,8 +89,8 @@ function LoginContent() {
       <div className="relative z-10 w-full max-w-md bg-white border border-rose-900/10 shadow-xl dark:bg-[#211318]/95 dark:border-[#B88A44]/30 dark:backdrop-blur-xl dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] rounded-2xl p-8 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-100 font-serif font-bold text-2xl flex items-center justify-center mx-auto border border-amber-500 shadow-md">
-            S
+          <div className="flex justify-center pb-1">
+            <ShreengarLogo href="/" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-rose-950 dark:text-[#F7EFD9]">
             Welcome Back

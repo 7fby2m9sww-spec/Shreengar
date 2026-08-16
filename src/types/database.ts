@@ -403,6 +403,7 @@ export interface ShippingAddress {
 export interface Coupon {
   id: string
   code: string
+  title: string
   type: 'percentage' | 'fixed'
   value: number
   min_spend: number
@@ -412,6 +413,14 @@ export interface Coupon {
   usage_limit: number | null
   used_count: number
   is_active: boolean
+  
+  // Targeted Rules
+  target_type?: 'all' | 'products' | 'categories' | 'selected_customers' | 'first_time_buyers'
+  target_product_ids?: string[]
+  target_category_ids?: string[]
+  target_customer_ids?: string[]
+  target_customer_emails?: string[]
+  first_time_only?: boolean
   created_at: string
 }
 

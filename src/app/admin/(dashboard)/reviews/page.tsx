@@ -38,6 +38,14 @@ export default function AdminReviewsPage() {
     } catch {}
   }
 
+  const handleDeleteReview = async (id: string) => {
+    setReviews(prev => prev.filter(r => r.id !== id))
+    try {
+      const supabase = createClient()
+      await supabase.from('reviews').delete().eq('id', id)
+    } catch {}
+  }
+
   const columns: Column<Review>[] = [
     {
       header: 'Author & User',
@@ -48,7 +56,7 @@ export default function AdminReviewsPage() {
           </div>
           <div>
             <h4 className="font-serif font-bold text-xs text-[#2B1A1F]">{row.user_name}</h4>
-            <span className="text-[10px] text-[#7A6B70]">Product ID: {row.product_id.slice(0, 8)}...</span>
+            <span className="text-[10px] text-[#7A6B70]">Product ID: {row.product_id ? row.product_id.slice(0, 8) : 'General'}...</span>
           </div>
         </div>
       ),
@@ -77,6 +85,7 @@ export default function AdminReviewsPage() {
     },
   ]
 
+  const pendingCount = reviews.filter(r => r.status === 'pending').length
   const filteredReviews = reviews.filter(r =>
     r.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (r.comment && r.comment.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -86,8 +95,8 @@ export default function AdminReviewsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Customer Review Moderation"
-        description="Approve, reject, or delete product feedback submissions before publishing to the storefront."
-        badgeText={`${reviews.length} Submissions`}
+        description="Approve, reject, or delete customer product feedback submissions before publishing to the storefront."
+        badgeText={`${pendingCount} Pending Moderation`}
       />
 
       <SearchAndFilterBar
@@ -126,7 +135,7 @@ export default function AdminReviewsPage() {
                   <XCircle className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setReviews(reviews.filter(r => r.id !== row.id))}
+                  onClick={() => handleDeleteReview(row.id)}
                   className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                   title="Delete Review"
                 >

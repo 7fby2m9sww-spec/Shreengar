@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { sendOtpAction } from '@/actions/auth/sendOtpAction'
 import { useRouter } from 'next/navigation'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -73,8 +74,8 @@ export default function SignupPage() {
 
       <div className="relative z-10 w-full max-w-md bg-amber-50 dark:bg-[#211318]/96 dark:border-[#B88A44]/30 rounded-2xl p-8 shadow-2xl border border-amber-500/30 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-300 font-serif font-bold text-2xl flex items-center justify-center mx-auto border border-amber-500 shadow-md">
-            S
+          <div className="flex justify-center pb-1">
+            <ShreengarLogo href="/" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-rose-950 dark:text-[#FFF4DC]">
             Join Shreengar

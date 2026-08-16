@@ -29,10 +29,40 @@ export async function submitProductReview(reviewData: {
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) return { success: false, error: 'Please login to write a customer review.' }
 
+    const userId = userData.user.id
+    const userEmail = userData.user.email
+
+    // 1. Prevent duplicate reviews by same customer for same product
+    const { data: existingReview } = await supabase
+      .from('reviews')
+      .select('id')
+      .eq('product_id', reviewData.product_id)
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (existingReview) {
+      return { success: false, error: 'You have already submitted a review for this product.' }
+    }
+
+    // 2. Verified purchaser check: Ensure customer has purchased this product
+    const { data: userOrders } = await supabase
+      .from('orders')
+      .select('id, items:order_items(product_id)')
+      .eq('user_id', userId)
+
+    const hasPurchased = userOrders?.some((order: any) =>
+      order.items?.some((item: any) => item.product_id === reviewData.product_id)
+    )
+
+    if (!hasPurchased) {
+      return { success: false, error: 'Only customers who have purchased this product can leave a verified review.' }
+    }
+
+    // 3. Insert review with default status = 'pending'
     const { error } = await supabase.from('reviews').insert({
       product_id: reviewData.product_id,
-      user_id: userData.user.id,
-      user_name: userData.user.user_metadata?.full_name || userData.user.email || 'Customer',
+      user_id: userId,
+      user_name: userData.user.user_metadata?.full_name || userEmail || 'Customer',
       rating: reviewData.rating,
       title: reviewData.title,
       comment: reviewData.comment,
@@ -46,19 +76,148 @@ export async function submitProductReview(reviewData: {
   }
 }
 
-export async function validateCoupon(code: string, subtotal: number): Promise<{ valid: boolean; coupon?: Coupon; message?: string }> {
+export async function validateCoupon(
+  code: string,
+  subtotal: number,
+  userId?: string | null,
+  userEmail?: string | null,
+  cartItems?: { productId: string; categoryId?: string; price: number; quantity: number }[]
+): Promise<{ valid: boolean; coupon?: Coupon; discountAmount?: number; message?: string }> {
   try {
     const supabase = createAdminClient()
-    const { data, error } = await supabase.from('coupons').select('*').eq('code', code.toUpperCase()).maybeSingle()
-    if (!error && data) {
-      const c = data as Coupon
-      if (!c.is_active) return { valid: false, message: 'This coupon code is inactive.' }
-      if (subtotal < c.min_spend) return { valid: false, message: `Minimum order amount of ₹${c.min_spend} required.` }
-      return { valid: true, coupon: c }
-    }
-  } catch {}
+    const cleanCode = code.trim().toUpperCase()
 
-  return { valid: false, message: 'Invalid or expired promo code.' }
+    if (!cleanCode) {
+      return { valid: false, message: 'Please enter a coupon code.' }
+    }
+
+    // 1. Fetch Coupon with case-insensitive ilike lookup
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('*')
+      .ilike('code', cleanCode)
+      .maybeSingle()
+
+    if (error || !data) {
+      return { valid: false, message: 'Coupon not found.' }
+    }
+
+    const c = data as Coupon
+    const minSpend = Number(c.min_spend ?? (c as any).minimum_order_amount ?? 0)
+    const rawType = (c.type as string) || (c as any).discount_type || 'percentage'
+    const couponType = (rawType === 'fixed_amount' || rawType === 'fixed') ? 'fixed' : 'percentage'
+    const couponValue = Number(c.value ?? (c as any).discount_value ?? 0)
+    const maxDiscount = c.max_discount !== undefined && c.max_discount !== null 
+      ? Number(c.max_discount) 
+      : ((c as any).maximum_discount ? Number((c as any).maximum_discount) : null)
+    const startDate = c.start_date || (c as any).starts_at
+    const endDate = c.end_date || (c as any).expires_at
+    const usedCount = Number(c.used_count ?? (c as any).used_count ?? 0)
+    const usageLimit = c.usage_limit !== undefined && c.usage_limit !== null
+      ? Number(c.usage_limit)
+      : ((c as any).usage_limit ? Number((c as any).usage_limit) : null)
+
+    // 2. Active Status Check
+    if (c.is_active === false) {
+      return { valid: false, message: 'This coupon code is currently inactive.' }
+    }
+
+    // 3. Start/End Date Validation (handling timezone safely)
+    const now = new Date()
+    if (startDate && new Date(startDate).getTime() > now.getTime()) {
+      return { valid: false, message: 'This promo campaign has not started yet.' }
+    }
+    if (endDate && new Date(endDate).getTime() < now.getTime()) {
+      return { valid: false, message: 'This coupon code has expired.' }
+    }
+
+    // 4. Usage Limit Validation
+    if (usageLimit !== null && usedCount >= usageLimit) {
+      return { valid: false, message: 'This promo code limit has been reached.' }
+    }
+
+    // 5. First-Time Buyer Order Count Check
+    if (c.first_time_only || c.target_type === 'first_time_buyers') {
+      if (!userId) {
+        return { valid: false, message: 'Please log in to redeem this first-time buyer coupon.' }
+      }
+      const { count } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+
+      if (count && count > 0) {
+        return { valid: false, message: 'This coupon is valid for first-time buyers only.' }
+      }
+    }
+
+    // 6. Selected Customer Verification (by UUID and/or Email with backward compatibility)
+    if (c.target_type === 'selected_customers') {
+      const normalizedEmail = userEmail ? userEmail.toLowerCase() : null
+      const targetedEmails = (c.target_customer_emails || []).map(e => e.toLowerCase())
+      const targetedIds = c.target_customer_ids || []
+
+      const isMatchById = Boolean(userId && targetedIds.includes(userId))
+      const isMatchByEmail = Boolean(normalizedEmail && targetedEmails.includes(normalizedEmail))
+
+      if (!isMatchById && !isMatchByEmail) {
+        return { valid: false, message: 'This coupon code is exclusive to select customer accounts.' }
+      }
+    }
+
+    // 7. Eligible Item Calculation
+    let eligibleSubtotal = subtotal
+    if (cartItems && cartItems.length > 0 && (c.target_type === 'products' || c.target_type === 'categories')) {
+      eligibleSubtotal = 0
+      for (const item of cartItems) {
+        let isEligible = false
+        if (c.target_type === 'products' && c.target_product_ids?.includes(item.productId)) {
+          isEligible = true
+        } else if (c.target_type === 'categories' && item.categoryId && c.target_category_ids?.includes(item.categoryId)) {
+          isEligible = true
+        }
+
+        if (isEligible) {
+          eligibleSubtotal += item.price * item.quantity
+        }
+      }
+
+      if (eligibleSubtotal === 0) {
+        return { valid: false, message: 'None of the items in your bag are eligible for this coupon.' }
+      }
+    }
+
+    // 8. Minimum Spend Validation (on eligible items)
+    if (eligibleSubtotal < minSpend) {
+      return { valid: false, message: `Minimum spend of ₹${minSpend} required on eligible items.` }
+    }
+
+    // 9. Percentage or Fixed Discount Calculation
+    let discount = couponType === 'percentage'
+      ? (eligibleSubtotal * couponValue) / 100
+      : couponValue
+
+    // 10. Max Discount Cap
+    if (maxDiscount !== null && discount > maxDiscount) {
+      discount = maxDiscount
+    }
+
+    const finalDiscount = Math.min(Math.round(discount), eligibleSubtotal)
+
+    return {
+      valid: true,
+      coupon: {
+        ...c,
+        type: couponType as any,
+        value: couponValue,
+        min_spend: minSpend,
+        max_discount: maxDiscount
+      },
+      discountAmount: finalDiscount,
+    }
+  } catch (err: any) {
+    return { valid: false, message: err.message || 'Failed to validate coupon code.' }
+  }
 }
 
 export async function getOrdersForUser(userId: string): Promise<Order[]> {

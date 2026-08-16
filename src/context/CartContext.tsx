@@ -9,7 +9,7 @@ import React, {
   useRef,
 } from 'react'
 import { usePathname } from 'next/navigation'
-import { CartDisplayItem, LocalCartItem } from '@/types/database'
+import { CartDisplayItem, LocalCartItem, Coupon } from '@/types/database'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/context/AuthContext'
 import {
@@ -19,9 +19,11 @@ import {
   clearCartAction,
   mergeGuestCartAction,
   getCartAction,
+  validateCouponAction
 } from '@/actions/cart/actions'
 
 const LOCAL_CART_KEY = 'shreengar_cart'
+const LOCAL_COUPON_KEY = 'shreengar_applied_coupon'
 
 // ─── Pricing Engine ─────────────────────────────────────────
 export interface CartTotals {
@@ -38,7 +40,7 @@ function computeTotals(items: CartDisplayItem[], couponDiscount = 0): CartTotals
   const discount = 0
   const shipping = subtotal > 999 ? 0 : 100
   const tax = 0
-  const grandTotal = subtotal - discount - couponDiscount + shipping + tax
+  const grandTotal = Math.max(0, subtotal - discount - couponDiscount + shipping + tax)
   return { subtotal, discount, couponDiscount, shipping, tax, grandTotal }
 }
 
@@ -75,7 +77,7 @@ function localToDisplay(items: LocalCartItem[]): CartDisplayItem[] {
     colorCode: i.colorCode,
     price: i.price,
     quantity: i.quantity,
-    stockQuantity: 999, // guests don't have live stock — validated server-side on merge
+    stockQuantity: 999,
     image: i.image,
     showColorOption: i.showColorOption !== undefined ? i.showColorOption : false,
   }))
@@ -95,6 +97,11 @@ interface CartContextType {
   removeItem: (cartItemId: string) => Promise<{ success: boolean; error?: string }>
   clearCart: () => Promise<void>
   setCouponDiscount: (amount: number) => void
+  appliedCoupon: Coupon | null
+  appliedCouponCode: string | null
+  applyCoupon: (code: string) => Promise<{ valid: boolean; coupon?: Coupon; discountAmount?: number; message?: string }>
+  removeCoupon: () => void
+  revalidateCoupon: () => Promise<void>
   refreshCart: () => Promise<void>
   shippingPincode: string | null
   shippingQuoteId: string | null
@@ -137,11 +144,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartDisplayItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isMiniCartOpen, setIsMiniCartOpen] = useState(false)
-  const [couponDiscount, setCouponDiscount] = useState(0)
+  
+  // Persisted Coupon State
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null)
+  const [couponDiscount, setCouponDiscountState] = useState(0)
+
   const { isAuthenticated: isCustomerAuth } = useAuth()
   const [isAdminAuth, setIsAdminAuth] = useState(false)
   const isAuthenticated = isCustomerAuth || isAdminAuth
-  const mergeAttempted = useRef(false)
 
   const [shippingPincode, setShippingPincodeState] = useState<string | null>(null)
   const [shippingQuoteId, setShippingQuoteId] = useState<string | null>(null)
@@ -155,10 +166,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0)
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const discount = 0
-
   const shipping = 0
   const tax = 0
-  const grandTotal = subtotal - discount - couponDiscount + shipping + tax
+  const grandTotal = Math.max(0, subtotal - discount - couponDiscount + shipping + tax)
 
   const totals: CartTotals = {
     subtotal,
@@ -168,6 +178,98 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     tax,
     grandTotal
   }
+
+  const setCouponDiscount = useCallback((amount: number) => {
+    setCouponDiscountState(amount)
+  }, [])
+
+  const removeCoupon = useCallback(() => {
+    setAppliedCoupon(null)
+    setAppliedCouponCode(null)
+    setCouponDiscountState(0)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(LOCAL_COUPON_KEY)
+    }
+  }, [])
+
+  const applyCoupon = useCallback(async (code: string) => {
+    const cleanCode = code.trim().toUpperCase()
+    if (!cleanCode) {
+      return { valid: false, message: 'Please enter a coupon code.' }
+    }
+
+    const formattedItems = items.map(i => ({
+      productId: i.productId,
+      categoryId: '',
+      price: i.price,
+      quantity: i.quantity
+    }))
+
+    const res = await validateCouponAction(cleanCode, subtotal, formattedItems)
+    if (res.valid && res.coupon) {
+      const discountAmt = res.discountAmount ?? (
+        res.coupon.type === 'percentage'
+          ? (subtotal * res.coupon.value) / 100
+          : res.coupon.value
+      )
+      const finalDiscount = Math.min(discountAmt, subtotal)
+      
+      setAppliedCoupon(res.coupon)
+      setAppliedCouponCode(res.coupon.code)
+      setCouponDiscountState(finalDiscount)
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_COUPON_KEY, res.coupon.code)
+      }
+      return { valid: true, coupon: res.coupon, discountAmount: finalDiscount }
+    } else {
+      return { valid: false, message: res.message || 'Invalid coupon code.' }
+    }
+  }, [items, subtotal])
+
+  const revalidateCoupon = useCallback(async () => {
+    if (typeof window === 'undefined') return
+    const storedCode = localStorage.getItem(LOCAL_COUPON_KEY)
+    if (!storedCode || items.length === 0) {
+      if (items.length === 0 && storedCode) {
+        removeCoupon()
+      }
+      return
+    }
+
+    const formattedItems = items.map(i => ({
+      productId: i.productId,
+      categoryId: '',
+      price: i.price,
+      quantity: i.quantity
+    }))
+
+    const res = await validateCouponAction(storedCode, subtotal, formattedItems)
+    if (res.valid && res.coupon) {
+      const discountAmt = res.discountAmount ?? (
+        res.coupon.type === 'percentage'
+          ? (subtotal * res.coupon.value) / 100
+          : res.coupon.value
+      )
+      const finalDiscount = Math.min(discountAmt, subtotal)
+
+      setAppliedCoupon(res.coupon)
+      setAppliedCouponCode(res.coupon.code)
+      setCouponDiscountState(finalDiscount)
+    } else {
+      // Coupon is no longer valid for current cart
+      removeCoupon()
+    }
+  }, [items, subtotal, removeCoupon])
+
+  // Revalidate coupon whenever cart items or subtotal change
+  useEffect(() => {
+    if (items.length > 0) {
+      revalidateCoupon()
+    } else {
+      setCouponDiscountState(0)
+    }
+  }, [subtotal, items.length, revalidateCoupon])
 
   const triggerShippingCalculation = useCallback(async (pincode: string | null) => {
     if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
@@ -189,7 +291,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     triggerShippingCalculation(pincode)
   }, [triggerShippingCalculation])
 
-  // Recalculate shipping quote whenever items, quantities, or settings change
   useEffect(() => {
     if (shippingPincode && items.length > 0) {
       triggerShippingCalculation(shippingPincode)
@@ -245,9 +346,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAdminAuth(!!session?.user)
       if (!session?.user && !isCustomerAuth) {
-        // Immediate clear on logout
         setItems([])
         clearLocalCart()
+        removeCoupon()
         if (typeof window !== 'undefined') {
           localStorage.removeItem('cart')
           localStorage.removeItem('shreengar-cart')
@@ -259,9 +360,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })
 
     return () => listener.subscription.unsubscribe()
-  }, [isCustomerAuth])
+  }, [isCustomerAuth, removeCoupon])
 
-  // ─── Cart Loading Sync ─────────────────────────────────────────
   useEffect(() => {
     refreshCart()
   }, [isAuthenticated, refreshCart])
@@ -292,7 +392,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setItems(cur => cur.map(i => i.id === cartItemId ? { ...i, quantity } : i))
       const res = await updateCartQuantityAction(cartItemId, quantity)
       if (!res.success) {
-        setItems(prev) // rollback
+        setItems(prev)
         return { success: false, error: 'error' in res ? res.error : 'Failed.' }
       }
       return { success: true }
@@ -323,7 +423,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await clearCartAction()
     }
     setItems([])
-  }, [isAuthenticated])
+    removeCoupon()
+  }, [isAuthenticated, removeCoupon])
 
   return (
     <CartContext.Provider value={{
@@ -339,6 +440,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeItem,
       clearCart,
       setCouponDiscount,
+      appliedCoupon,
+      appliedCouponCode,
+      applyCoupon,
+      removeCoupon,
+      revalidateCoupon,
       refreshCart,
       shippingPincode,
       shippingQuoteId,

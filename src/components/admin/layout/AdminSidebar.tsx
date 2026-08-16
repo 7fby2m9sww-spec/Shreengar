@@ -9,6 +9,7 @@ import { AdminSidebarGroup } from './AdminSidebarGroup'
 import { AdminSidebarItem } from './AdminSidebarItem'
 import { PermissionAwareNavItem } from './PermissionAwareNavItem'
 import { logoutAction } from '@/services/auth'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 interface AdminSidebarProps {
   userRole?: string
@@ -25,20 +26,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ userRole = 'super_ad
       )}
     >
       {/* Brand Header */}
-      <div className="p-5 border-b border-[#8C3A57]/30 flex items-center justify-between">
-        <div className="flex items-center space-x-3 overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-amber-600 text-[#5C0B26] font-serif font-bold text-lg flex items-center justify-center shadow-lg flex-shrink-0">
-            S
+      <div className="p-4 border-b border-[#8C3A57]/30 flex items-center justify-between">
+        {!isCollapsed ? (
+          <div className="flex flex-col space-y-1 overflow-hidden">
+            <ShreengarLogo href="/admin" variant="dark" />
+            <span className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold block pl-1">
+              Enterprise Admin
+            </span>
           </div>
-          {!isCollapsed && (
-            <div className="transition-opacity duration-200 truncate">
-              <h2 className="font-serif text-base font-bold tracking-wider text-[#FAF8F5]">SHREENGAR</h2>
-              <span className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold block -mt-0.5">
-                Enterprise Admin
-              </span>
-            </div>
-          )}
-        </div>
+        ) : (
+          <Link href="/admin" title="Shreengar Admin" className="flex items-center justify-center shrink-0">
+            <img
+              src="/branding/shreengar-framed-s-emblem-light.png"
+              alt="Shreengar"
+              className="w-8 h-8 object-contain"
+            />
+          </Link>
+        )}
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}

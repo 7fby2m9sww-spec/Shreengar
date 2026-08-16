@@ -20,6 +20,9 @@ export default function CartPage() {
     removeItem,
     clearCart,
     setCouponDiscount,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
     shippingPincode,
     shippingQuoteError,
     setShippingPincode,
@@ -30,7 +33,6 @@ export default function CartPage() {
   const { showToast } = useToast()
   const [pincodeInput, setPincodeInput] = useState(shippingPincode || '')
   const [couponCode, setCouponCode] = useState('')
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState<string | null>(null)
   const [clearConfirm, setClearConfirm] = useState(false)
@@ -50,8 +52,7 @@ export default function CartPage() {
   const handleClearCart = async () => {
     if (!clearConfirm) { setClearConfirm(true); return }
     await clearCart()
-    setAppliedCoupon(null)
-    setCouponDiscount(0)
+    removeCoupon()
     setCouponCode('')
     setClearConfirm(false)
     showToast('Cart Cleared', 'All items have been removed from your bag.', 'info')
@@ -61,36 +62,19 @@ export default function CartPage() {
     if (!couponCode.trim()) return
     setCouponLoading(true)
     setCouponError(null)
-    try {
-      const result = await validateCouponAction(couponCode, totals.subtotal)
-      if (result.valid && result.coupon) {
-        const coupon = result.coupon
-        setAppliedCoupon(coupon)
-        const discountAmt =
-          coupon.type === 'percentage'
-            ? (totals.subtotal * coupon.value) / 100
-            : coupon.value
-        setCouponDiscount(Math.min(discountAmt, totals.subtotal))
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('shreengar_applied_coupon', coupon.code)
-        }
-        showToast('Coupon Applied!', `${coupon.code} — saved ${formatINR(discountAmt)}.`, 'success')
-      } else {
-        setCouponError(result.message || 'Invalid coupon code.')
-      }
-    } catch {
-      setCouponError('Failed to validate coupon. Please try again.')
+    const result = await applyCoupon(couponCode)
+    if (result.valid && result.coupon) {
+      showToast('Coupon Applied!', `${result.coupon.code} — saved ${formatINR(result.discountAmount || 0)}.`, 'success')
+      setCouponCode('')
+    } else {
+      setCouponError(result.message || 'Invalid coupon code.')
     }
     setCouponLoading(false)
   }
 
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null)
-    setCouponDiscount(0)
+  const handleRemoveCouponClick = () => {
+    removeCoupon()
     setCouponCode('')
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('shreengar_applied_coupon')
-    }
     showToast('Coupon Removed', 'The promotional code has been removed.', 'info')
   }
 
@@ -297,7 +281,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <button
-                  onClick={handleRemoveCoupon}
+                  onClick={handleRemoveCouponClick}
                   className="text-emerald-600 hover:text-red-500 transition-colors"
                 >
                   <X className="w-4 h-4" />

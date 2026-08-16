@@ -9,6 +9,7 @@ import { verifyOtpAction } from '@/actions/auth/verifyOtpAction';
 import { sendOtpAction } from '@/actions/auth/sendOtpAction';
 import { sendLoginOtpAction } from '@/actions/auth/sendLoginOtpAction';
 import { useToast } from '@/context/ToastContext';
+import { ShreengarLogo } from '@/components/store/ShreengarLogo';
 
 /**
  * Helper function to mask email address for security.
@@ -121,8 +122,8 @@ function VerifyOtpContent() {
 
       <div className="relative z-10 w-full max-w-md bg-amber-50 border border-amber-500/10 dark:bg-[#211318]/95 dark:border-[#B88A44]/30 dark:backdrop-blur-xl dark:shadow-[0_24px_80px_rgba(0,0,0,0.45)] rounded-2xl p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-300 font-serif font-bold text-2xl flex items-center justify-center mx-auto border border-amber-500 shadow-md">
-            S
+          <div className="flex justify-center pb-1">
+            <ShreengarLogo href="/" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-rose-950 dark:text-[#F7EFD9]">Verify your email</h1>
           <p className="text-xs text-rose-900/70 dark:text-[#C8AAA9] max-w-xs mx-auto">

@@ -8,6 +8,7 @@ import { AdminSidebarGroup } from './AdminSidebarGroup'
 import { AdminSidebarItem } from './AdminSidebarItem'
 import { PermissionAwareNavItem } from './PermissionAwareNavItem'
 import { logoutAction } from '@/services/auth'
+import { ShreengarLogo } from '@/components/store/ShreengarLogo'
 
 interface AdminMobileDrawerProps {
   isOpen: boolean
@@ -65,17 +66,12 @@ export const AdminMobileDrawer: React.FC<AdminMobileDrawerProps> = ({
         className="relative flex-1 flex flex-col max-w-xs w-full bg-[#5C0B26] dark:bg-[#190E13] text-[#FAF8F5] shadow-2xl z-10 animate-in slide-in-from-left duration-300 border-r border-[#8C3A57]/30"
       >
         {/* Drawer Header */}
-        <div className="p-5 border-b border-[#8C3A57]/30 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] to-amber-600 text-[#5C0B26] font-serif font-bold text-lg flex items-center justify-center shadow-lg flex-shrink-0">
-              S
-            </div>
-            <div>
-              <h2 className="font-serif text-base font-bold tracking-wider text-[#FAF8F5]">SHREENGAR</h2>
-              <span className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold block -mt-0.5">
-                Enterprise Admin
-              </span>
-            </div>
+        <div className="p-4 border-b border-[#8C3A57]/30 flex items-center justify-between">
+          <div className="flex flex-col space-y-1 overflow-hidden">
+            <ShreengarLogo href="/admin" variant="dark" />
+            <span className="text-[9px] uppercase tracking-widest text-[#D4AF37] font-semibold block pl-1">
+              Enterprise Admin
+            </span>
           </div>
 
           <button

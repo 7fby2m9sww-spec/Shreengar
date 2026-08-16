@@ -36,7 +36,7 @@ export const DEFAULT_FOOTER_CONFIG: FooterConfig = {
     description: 'Subscribe for exclusive festive launch previews and couture collection updates.',
     placeholder: 'Enter email...',
     buttonLabel: 'Subscribe',
-    enabled: true
+    enabled: false
   },
   bottomBar: {
     copyrightText: 'Shreengar Ethnic Couture. All rights reserved.',

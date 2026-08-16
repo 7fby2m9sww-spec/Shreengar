@@ -473,7 +473,7 @@ export default function AdminSupportPage() {
                         conv.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {conv.status.replace(/_/g, ' ')}
+                        {(conv.status || 'open').replace(/_/g, ' ')}
                       </span>
 
                       <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full capitalize ${

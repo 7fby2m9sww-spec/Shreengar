@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           {isOutOfStock ? (
             <Link
               href={`/product/${product.id}`}
-              className="w-full py-2.5 px-3 bg-surface-muted hover:bg-surface text-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow flex items-center justify-center space-x-1.5 border border-border-warm transition-colors"
+              className="btn-smooth w-full py-2.5 px-3 bg-surface-muted hover:bg-surface text-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow flex items-center justify-center space-x-1.5 border border-border-warm transition-colors"
             >
               <Eye className="w-3.5 h-3.5 text-muted-foreground" />
               <span>View Details</span>
@@ -133,7 +133,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           ) : requiresOptionSelection ? (
             <Link
               href={`/product/${product.id}`}
-              className="w-full py-2.5 px-3 bg-brand-primary/95 hover:bg-brand-primary text-brand-primary-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow-xl flex items-center justify-center space-x-1.5 backdrop-blur-md transition-all hover:scale-[1.02]"
+              className="btn-smooth btn-shine w-full py-2.5 px-3 bg-brand-primary/95 hover:bg-brand-primary text-brand-primary-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow-xl flex items-center justify-center space-x-1.5 backdrop-blur-md transition-all hover:scale-[1.02]"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Select Options</span>
@@ -146,7 +146,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
                   onAddToCart(product)
                 }
               }}
-              className="w-full py-2.5 px-3 bg-brand-primary/95 hover:bg-brand-primary text-brand-primary-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow-xl flex items-center justify-center space-x-1.5 backdrop-blur-md transition-all hover:scale-[1.02] cursor-pointer"
+              className="btn-smooth btn-shine w-full py-2.5 px-3 bg-brand-primary/95 hover:bg-brand-primary text-brand-primary-foreground font-serif font-bold text-xs tracking-wider rounded-[4px] shadow-xl flex items-center justify-center space-x-1.5 backdrop-blur-md transition-all hover:scale-[1.02] cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               <span>Add to Cart</span>
