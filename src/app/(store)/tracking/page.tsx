@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/store/Breadcrumb'
-import { Search, Truck } from 'lucide-react'
+import { Search, Truck, MessageSquare } from 'lucide-react'
 import { getCustomerOrderByIdAction } from '@/actions/orders/actions'
 import { useAuth } from '@/context/AuthContext'
 
@@ -97,8 +98,18 @@ export default function OrderTrackingPage() {
             </div>
           </div>
 
-          <div className="p-4 bg-surface-muted/50 rounded-xl border border-border text-xs font-serif text-foreground">
-            Current Status: <strong className="uppercase">{activeOrder.status}</strong>
+          <div className="p-4 bg-surface-muted/50 rounded-xl border border-border text-xs font-serif text-foreground flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              Current Status: <strong className="uppercase">{activeOrder.status}</strong>
+            </div>
+
+            <Link
+              href={`/tracking?order=${activeOrder.order_number}&supportOrder=${activeOrder.id}`}
+              className="inline-flex items-center justify-center font-medium rounded-xl transition-all bg-brand-primary hover:bg-brand-primary-hover text-amber-100 px-4 py-2 text-xs space-x-1.5 cursor-pointer shrink-0"
+            >
+              <MessageSquare className="w-4 h-4 text-gold" />
+              <span>Help with Order #{activeOrder.order_number}</span>
+            </Link>
           </div>
         </div>
       ) : searched && !isSearching ? (

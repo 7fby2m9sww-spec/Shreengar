@@ -124,7 +124,10 @@ export async function getConversationsAction(params: {
     } else if (session.type === 'customer') {
       const { data, error } = await supabase
         .from('support_conversations')
-        .select('*')
+        .select(`
+          *,
+          order:orders(id, order_number, status)
+        `)
         .eq('customer_id', session.customerId)
         .order('last_message_at', { ascending: false })
 

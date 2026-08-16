@@ -163,12 +163,15 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const { addItem, openMiniCart } = useCart()
   const { showToast } = useToast()
   const { isAuthenticated } = useAuth()
 
   const handleColorSelect = (colorId: string) => {
     setSelectedColorId(colorId)
+    setValidationError(null)
     // Clear size selection if it's not valid/available for the new color
     if (selectedSizeId) {
       const match = variants.find(
@@ -182,6 +185,11 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
         setSelectedSizeId(null)
       }
     }
+  }
+
+  const handleSizeSelect = (sizeId: string) => {
+    setSelectedSizeId(sizeId)
+    setValidationError(null)
   }
 
   // Clear selected values that no longer resolve to active variants
@@ -226,13 +234,17 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
     }
 
     if (hasColors && !selectedColorId) {
+      setValidationError('Please select a colour.')
       showToast('Selection Required', 'Please select a colour.', 'error')
       return
     }
     if (hasSizes && !selectedSizeId) {
+      setValidationError('Please select a size.')
       showToast('Selection Required', 'Please select a size.', 'error')
       return
     }
+    setValidationError(null)
+
     if (!activeVariant) {
       showToast('Not Available', 'This combination is not available.', 'error')
       return
@@ -271,10 +283,11 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
     setIsAddingToCart(false)
 
     if (res.success) {
+      setJustAdded(true)
       setAddedToast(true)
-      setTimeout(() => setAddedToast(false), 3000)
+      setTimeout(() => setJustAdded(false), 4000)
+      setTimeout(() => setAddedToast(false), 4000)
       showToast('Added to Bag!', `${product.title} (${activeVariant.size})`, 'success')
-      openMiniCart()
     } else {
       showToast('Could Not Add', res.error || 'Please try again.', 'error')
     }
@@ -621,15 +634,31 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-2">
+          {validationError && (
+            <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 flex items-center space-x-2 animate-in fade-in duration-150">
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-ping shrink-0" />
+              <span>{validationError}</span>
+            </div>
+          )}
+
           <button
             onClick={handleAddToCart}
             disabled={isBuyDisabled || isAddingToCart}
-            className="w-full py-3.5 px-6 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-sm rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+            className={`w-full py-3.5 px-6 font-serif font-bold text-sm rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer ${
+              justAdded
+                ? 'bg-emerald-800 text-amber-100 ring-2 ring-emerald-400/50'
+                : 'bg-rose-950 hover:bg-rose-900 text-amber-100'
+            }`}
           >
             {isAddingToCart ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Processing...</span>
+              </>
+            ) : justAdded ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>Added to Bag!</span>
               </>
             ) : (hasColors && !selectedColorId) ? (
               <span>Please select a colour.</span>
@@ -644,6 +673,36 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
               </>
             )}
           </button>
+
+          {/* Post Add-to-Cart Action Bar */}
+          {justAdded && (
+            <div className="p-3.5 bg-emerald-950/10 dark:bg-emerald-900/20 border border-emerald-500/30 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  ✓
+                </div>
+                <span className="text-xs font-serif font-bold text-emerald-900 dark:text-emerald-300">
+                  Item added to your bag!
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={openMiniCart}
+                  className="flex-1 sm:flex-initial px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-amber-100 text-xs font-serif font-bold rounded-lg transition-colors cursor-pointer text-center"
+                >
+                  View Cart
+                </button>
+                <Link
+                  href="/shop"
+                  className="flex-1 sm:flex-initial px-4 py-2 bg-surface border border-border text-foreground text-xs font-serif font-medium rounded-lg hover:bg-surface-muted transition-colors text-center"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            </div>
+          )}
+
           <Link
             href={isBuyDisabled ? '#' : '/checkout'}
             className={`w-full py-3.5 px-6 bg-amber-600 hover:bg-amber-500 text-amber-950 font-serif font-bold text-sm rounded-xl shadow-md text-center block transition-colors ${
@@ -654,9 +713,8 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
           </Link>
         </div>
 
-
         {/* Guarantee Badges */}
-        <div className="pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-[10px] text-muted-foreground">
+        <div className="pt-4 border-t border-border grid grid-cols-3 gap-2 text-center text-[10px] text-muted-foreground pb-16 sm:pb-0">
           {product.delivery_available && !product.showroom_collection_only ? (
             <div className="p-2 rounded-lg bg-surface-muted/40 border border-border flex flex-col justify-center" title={product.delivery_message || undefined}>
               <Truck className="w-4 h-4 mx-auto text-amber-700 mb-1" />
@@ -700,6 +758,37 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
             <span className="text-[9px] text-muted-foreground">Direct from Shreengar</span>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Fixed Bottom Action Bar */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface/95 backdrop-blur-md border-t border-border px-4 py-3 shadow-2xl flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-serif font-bold text-foreground truncate">{product.title}</p>
+          <p className="text-xs font-bold text-brand-primary dark:text-gold">{formatINR(activePrice)}</p>
+        </div>
+        <button
+          onClick={handleAddToCart}
+          disabled={isBuyDisabled || isAddingToCart}
+          className={`px-5 py-2.5 font-serif font-bold text-xs rounded-xl shadow-lg flex items-center space-x-1.5 disabled:opacity-50 shrink-0 cursor-pointer ${
+            justAdded
+              ? 'bg-emerald-800 text-amber-100'
+              : 'bg-rose-950 hover:bg-rose-900 text-amber-100'
+          }`}
+        >
+          {isAddingToCart ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : justAdded ? (
+            <>
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span>Added!</span>
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="w-4 h-4" />
+              <span>Add to Bag</span>
+            </>
+          )}
+        </button>
       </div>
     </>
   )

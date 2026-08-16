@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { CheckCircle2, Truck, Calendar } from 'lucide-react'
+import { CheckCircle2, Truck, Calendar, MessageSquare } from 'lucide-react'
 import { getCustomerOrderByIdAction } from '@/actions/orders/actions'
 import { formatINR } from '@/lib/utils'
 
@@ -94,18 +94,26 @@ export default async function OrderSuccessPage({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
           href={`/tracking?order=${orderNumber}`}
-          className="w-full sm:w-auto px-6 py-3.5 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2"
+          className="w-full sm:w-auto px-5 py-3 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2"
         >
           <Truck className="w-4 h-4 text-amber-400" />
           <span>Track Delivery Status</span>
         </Link>
 
         <Link
+          href={`/order-success/${id}?supportOrder=${id}`}
+          className="w-full sm:w-auto px-5 py-3 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary dark:text-amber-300 font-serif font-bold text-xs rounded-xl border border-brand-primary/20 flex items-center justify-center space-x-2"
+        >
+          <MessageSquare className="w-4 h-4 text-gold" />
+          <span>Order Support Chat</span>
+        </Link>
+
+        <Link
           href="/shop"
-          className="w-full sm:w-auto px-6 py-3.5 bg-surface-muted hover:bg-amber-100 text-foreground font-serif font-semibold text-xs rounded-xl border border-border text-center"
+          className="w-full sm:w-auto px-5 py-3 bg-surface-muted hover:bg-surface-elevated text-foreground font-serif font-semibold text-xs rounded-xl border border-border text-center"
         >
           Continue Shopping
         </Link>

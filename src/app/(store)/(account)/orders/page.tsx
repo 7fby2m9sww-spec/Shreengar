@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Breadcrumb } from '@/components/store/Breadcrumb'
 import { getOrdersForUser } from '@/services/store'
 import { Badge } from '@/components/ui/Badge'
-import { Package, Truck } from 'lucide-react'
+import { Package, Truck, MessageSquare } from 'lucide-react'
 import { formatINR, formatDate } from '@/lib/utils'
 import { getSession } from '@/lib/auth/getSession'
 import { redirect } from 'next/navigation'
@@ -94,18 +94,28 @@ export default async function MyOrdersPage() {
               </div>
 
               {/* Actions */}
-              <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+              <div className="pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <span className="text-muted-foreground font-medium">
                   {order.tracking_number ? `Tracking: ${order.tracking_number}` : 'Preparing Dispatch'}
                 </span>
 
-                <Link
-                  href={`/tracking?order=${order.order_number}`}
-                  className="inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background bg-surface-muted text-foreground border border-border hover:bg-surface-elevated px-3 py-1.5 text-xs min-h-[32px] space-x-1"
-                >
-                  <Truck className="w-3.5 h-3.5 text-accent" />
-                  <span>Track Order</span>
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <Link
+                    href={`/orders?supportOrder=${order.id}`}
+                    className="inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent bg-brand-primary/10 dark:bg-amber-400/10 text-brand-primary dark:text-amber-300 border border-brand-primary/20 dark:border-amber-400/30 hover:bg-brand-primary/20 dark:hover:bg-amber-400/20 px-3 py-1.5 text-xs min-h-[32px] space-x-1"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-gold" />
+                    <span>Help & Support</span>
+                  </Link>
+
+                  <Link
+                    href={`/tracking?order=${order.order_number}`}
+                    className="inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background bg-surface-muted text-foreground border border-border hover:bg-surface-elevated px-3 py-1.5 text-xs min-h-[32px] space-x-1"
+                  >
+                    <Truck className="w-3.5 h-3.5 text-accent" />
+                    <span>Track Order</span>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

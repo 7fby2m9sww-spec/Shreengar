@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   MessageSquare,
   X,
@@ -13,7 +13,8 @@ import {
   Tag,
   AlertCircle,
   HelpCircle,
-  Plus
+  Plus,
+  Package
 } from 'lucide-react'
 import {
   getUnreadSupportCountAction,
@@ -50,6 +51,9 @@ export function SupportPortal() {
   const pathname = usePathname()
   const router = useRouter()
 
+  const searchParams = useSearchParams()
+  const supportOrderId = searchParams.get('supportOrder') || searchParams.get('orderId') || searchParams.get('supportOrderId')
+
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const { isMiniCartOpen } = useCart()
@@ -77,6 +81,52 @@ export function SupportPortal() {
   const [chatError, setChatError] = useState<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Auto-open Support Chat for SPECIFIC order when supportOrder or orderId URL parameter is passed
+  useEffect(() => {
+    if (!supportOrderId || !isAuthenticated) return
+
+    setIsOpen(true)
+
+    getConversationsAction({}).then(res => {
+      if (res.success && res.data) {
+        const normalized = (res.data as any[]).map(normalizeConversation)
+        setConversations(normalized)
+
+        // 1. Check if an existing support thread exists for this exact order
+        const matchingConv = normalized.find(c =>
+          c.order_id === supportOrderId ||
+          c.order?.id === supportOrderId ||
+          c.order?.order_number === supportOrderId
+        )
+
+        if (matchingConv) {
+          setActiveConversation(matchingConv)
+          setScreen('chat')
+        } else {
+          // 2. Open new request screen linked directly to this order
+          setOrderId(supportOrderId)
+          setTopic('Order issue')
+
+          getCustomerOrdersAction().then(orderRes => {
+            let displayOrderNum = supportOrderId
+            if (orderRes.success && orderRes.data) {
+              setOrders(orderRes.data)
+              const matchedOrder = orderRes.data.find(
+                o => o.id === supportOrderId || o.order_number === supportOrderId
+              )
+              if (matchedOrder) {
+                setOrderId(matchedOrder.id)
+                displayOrderNum = matchedOrder.order_number
+              }
+            }
+            setSubject(`Help with Order #${displayOrderNum}`)
+            setScreen('create')
+          })
+        }
+      }
+    })
+  }, [supportOrderId, isAuthenticated])
 
   // 1. Fetch unread count on mount and poll
   const loadUnreadCount = async () => {
@@ -360,6 +410,12 @@ export function SupportPortal() {
                                 <Tag className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                                 <span>{safeConv.topic || 'General'}</span>
                               </span>
+                              {safeConv.order && (
+                                <span className="flex items-center space-x-1 font-mono text-[9px] text-amber-800 dark:text-amber-300 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded">
+                                  <Package className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+                                  <span>#{safeConv.order.order_number}</span>
+                                </span>
+                              )}
                               <span className="flex items-center space-x-1">
                                 <Calendar className="w-3 h-3" />
                                 <span>{new Date(safeConv.last_message_at || Date.now()).toLocaleDateString()}</span>
@@ -489,6 +545,28 @@ export function SupportPortal() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Order Context Banner */}
+                  {(activeConversation.order || activeConversation.order_id) && (
+                    <div className="bg-amber-100/70 dark:bg-amber-950/40 border-b border-amber-900/10 dark:border-amber-400/20 px-3.5 py-2 flex items-center justify-between text-xs shrink-0">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <Package className="w-4 h-4 text-amber-800 dark:text-amber-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-mono font-bold text-amber-950 dark:text-amber-100 text-xs leading-none">
+                            Order #{activeConversation.order?.order_number || activeConversation.order_id}
+                          </p>
+                          <p className="text-[10px] text-amber-800/80 dark:text-amber-300/70 mt-0.5">
+                            Order-specific support thread
+                          </p>
+                        </div>
+                      </div>
+                      {activeConversation.order?.status && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
+                          {activeConversation.order.status}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Messages list */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-background-warm/30">

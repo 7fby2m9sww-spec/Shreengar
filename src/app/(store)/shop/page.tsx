@@ -80,18 +80,18 @@ export default async function ShopPage({
         </div>
 
         {/* Search & Sort Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          <form action="/shop" method="GET" className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <form action="/shop" method="GET" className="relative flex-1 sm:w-64 max-w-full min-w-0">
             {categoryId && <input type="hidden" name="category" value={categoryId} />}
             {collectionId && <input type="hidden" name="collection" value={collectionId} />}
             {sort !== 'newest' && <input type="hidden" name="sort" value={sort} />}
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground shrink-0 pointer-events-none" />
             <input
               type="text"
               name="search"
               defaultValue={searchQuery || ''}
               placeholder="Search products..."
-              className="pl-9 pr-4 py-2 text-xs bg-surface border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-rose-900"
+              className="w-full pl-9 pr-4 py-2 text-xs bg-surface border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-rose-900 min-w-0 truncate"
             />
           </form>
 

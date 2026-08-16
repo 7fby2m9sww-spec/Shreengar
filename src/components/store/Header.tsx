@@ -41,6 +41,8 @@ export const Header: React.FC<HeaderProps> = ({
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
+  const [headerSearchQuery, setHeaderSearchQuery] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -136,18 +138,22 @@ export const Header: React.FC<HeaderProps> = ({
       <CouponAnnouncementBar />
 
       {/* Main Navigation Bar */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
           <div className="flex h-16 sm:h-20 items-center justify-between">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-foreground hover:bg-surface-muted rounded-xl transition-colors"
+            className="md:hidden p-2 text-foreground hover:bg-surface-muted rounded-xl transition-colors z-10"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Unified Gold Brand Logo */}
-          <ShreengarLogo />
+          {/* Unified Gold Brand Logo (Centered on Mobile Viewport) */}
+          <div className="md:static absolute left-1/2 -translate-x-1/2 md:translate-x-0 top-1/2 -translate-y-1/2 md:translate-y-0 flex items-center justify-center pointer-events-none max-w-[calc(100%-120px)] sm:max-w-none">
+            <div className="pointer-events-auto">
+              <ShreengarLogo />
+            </div>
+          </div>
 
 
           {/* Desktop Category Navigation */}
@@ -166,17 +172,28 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           {/* Action Tools: Search, Wishlist, Cart, Profile */}
-          <div className="flex items-center space-x-3 sm:space-x-5">
-            {/* Search Input Bar */}
-            <form action="/shop" method="GET" className="hidden sm:flex items-center relative">
+          <div className="flex items-center space-x-2.5 sm:space-x-4 lg:space-x-5 z-10">
+            {/* Desktop Search Input Bar */}
+            <form action="/shop" method="GET" className="hidden sm:flex items-center relative min-w-0">
               <input
                 type="text"
                 name="search"
                 placeholder="Search Anarkalis..."
-                className="w-44 lg:w-56 pl-9 pr-4 py-1.5 text-xs bg-surface-warm border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-64 focus:ring-1 focus:ring-gold transition-all"
+                className="w-36 md:w-48 lg:w-56 pl-9 pr-4 py-1.5 text-xs bg-surface-warm border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-44 md:focus:w-56 focus:ring-1 focus:ring-gold transition-all min-w-0"
               />
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
             </form>
+
+            {/* Mobile Search Icon Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+              className="sm:hidden p-2 text-foreground hover:text-gold transition-colors"
+              title="Search"
+              aria-label="Toggle mobile search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
 
             {/* Wishlist Icon */}
             <Link
@@ -346,17 +363,54 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
+      {/* Mobile Expandable Search Bar */}
+      {isMobileSearchOpen && (
+        <div className="sm:hidden border-t border-b border-border-warm bg-surface-warm/98 backdrop-blur-md px-4 py-2.5 z-40 animate-in slide-in-from-top-1 duration-150">
+          <form action="/shop" method="GET" className="relative flex items-center gap-2 w-full min-w-0">
+            <div className="relative flex-1 min-w-0">
+              <input
+                type="text"
+                name="search"
+                value={headerSearchQuery}
+                onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                placeholder="Search Anarkalis, Sarees..."
+                autoFocus
+                className="w-full pl-9 pr-8 py-2 text-xs bg-surface border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold transition-all min-w-0 truncate"
+              />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
+              {headerSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setHeaderSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search text"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMobileSearchOpen(false)}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 px-1"
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl">
-          <form action="/shop" method="GET" className="relative">
+          <form action="/shop" method="GET" className="relative flex items-center w-full min-w-0">
             <input
               type="text"
               name="search"
               placeholder="Search Anarkalis..."
-              className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-border rounded-lg text-foreground"
+              className="w-full pl-9 pr-4 py-2 text-xs bg-surface border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold min-w-0 truncate"
             />
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
           </form>
 
           {navCategories.length > 0 && (
