@@ -74,7 +74,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
         </div>
         <div>
           <h3 className="font-serif font-bold text-lg text-foreground">{fullName || 'Customer User'}</h3>
-          <span className="text-xs text-muted-foreground font-mono">{displayEmail}</span>
+          <span className="text-xs text-muted-foreground font-mono block max-w-full break-all [overflow-wrap:anywhere] px-2">{displayEmail}</span>
         </div>
         <div className="pt-3 border-t border-border text-xs text-muted-foreground flex items-center justify-center space-x-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -131,17 +131,19 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
           
           <div className="space-y-4">
             {/* Email Row */}
-            <div className="flex items-center justify-between p-4 bg-surface-muted rounded-xl border border-border">
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-                <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-xl border border-border gap-3 sm:gap-4">
+              <div className="flex items-start sm:items-center space-x-3 min-w-0 flex-1">
+                <Mail className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5 sm:mt-0" />
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Verified Email</p>
-                  <p className="font-medium text-foreground text-sm font-mono">{displayEmail}</p>
+                  <p className="font-medium text-foreground text-sm font-mono break-all sm:break-normal [overflow-wrap:anywhere] min-w-0 pr-1">
+                    {displayEmail}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={handleChangeEmail}
-                className="text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors"
+                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Change</span>
@@ -149,17 +151,19 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
             </div>
 
             {/* Phone Row */}
-            <div className="flex items-center justify-between p-4 bg-surface-muted rounded-xl border border-border">
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-muted-foreground" />
-                <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-xl border border-border gap-3 sm:gap-4">
+              <div className="flex items-start sm:items-center space-x-3 min-w-0 flex-1">
+                <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5 sm:mt-0" />
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Verified Phone</p>
-                  <p className="font-medium text-foreground text-sm">{displayPhone || 'Not provided'}</p>
+                  <p className="font-medium text-foreground text-sm break-all sm:break-normal [overflow-wrap:anywhere] min-w-0 pr-1">
+                    {displayPhone || 'Not provided'}
+                  </p>
                 </div>
               </div>
               <button
                 onClick={handleChangePhone}
-                className="text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors"
+                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Change</span>
