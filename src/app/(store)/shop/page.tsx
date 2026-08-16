@@ -118,18 +118,20 @@ export default async function ShopPage({
                   All Categories
                 </Link>
               </li>
-              {categories.map(cat => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/shop?category=${cat.id}`}
-                    className={`block px-2.5 py-1.5 rounded-lg transition-colors ${
-                      categoryId === cat.id ? 'bg-rose-950 text-amber-100 font-bold' : 'text-muted-foreground hover:bg-amber-100/60 dark:hover:bg-rose-950/40'
-                    }`}
-                  >
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
+              {categories
+                .filter(cat => !cat.name?.toLowerCase().includes('kurti') && !cat.slug?.toLowerCase().includes('kurti'))
+                .map(cat => (
+                  <li key={cat.id}>
+                    <Link
+                      href={`/shop?category=${cat.id}`}
+                      className={`block px-2.5 py-1.5 rounded-lg transition-colors ${
+                        categoryId === cat.id ? 'bg-rose-950 text-amber-100 font-bold' : 'text-muted-foreground hover:bg-amber-100/60 dark:hover:bg-rose-950/40'
+                      }`}
+                    >
+                      {cat.name}
+                    </Link>
+                  </li>
+                ))}
             </ul>
           </div>
 

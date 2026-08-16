@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
     cat => {
       const name = (cat.name || '').trim().toLowerCase()
       const slug = (cat.slug || '').trim().toLowerCase()
-      return name !== 'kurti' && name !== 'kurtis' && slug !== 'kurti' && slug !== 'kurtis'
+      return !name.includes('kurti') && !slug.includes('kurti')
     }
   )
   
