@@ -31,9 +31,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground">Account Settings</h1>
+        <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">Account Settings</h1>
         <p className="text-sm text-muted-foreground mt-2">Manage your preferences, security, and active sessions.</p>
       </div>
 
@@ -138,11 +138,11 @@ export default function SettingsPage() {
         </section>
 
         {/* Save Controls */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-stretch sm:justify-end pt-4">
           <Button
             onClick={handleSave}
             variant="primary"
-            className="px-8 py-2.5 text-sm font-bold font-serif shadow-sm w-full sm:w-auto"
+            className="px-8 py-2.5 text-sm font-bold font-serif shadow-sm w-full sm:w-auto min-h-[48px] sm:min-h-0"
             isLoading={isLoading}
           >
             Save Preferences

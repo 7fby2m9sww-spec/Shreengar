@@ -58,6 +58,28 @@ export function SupportPortal() {
   const [unreadCount, setUnreadCount] = useState(0)
   const { isMiniCartOpen } = useCart()
 
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false)
+
+  useEffect(() => {
+    const checkOverlay = () => {
+      const isScrollLocked = document.body.style.overflow === 'hidden'
+      setIsOverlayOpen(isScrollLocked)
+    }
+
+    checkOverlay()
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          checkOverlay()
+        }
+      })
+    })
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style'] })
+    return () => observer.disconnect()
+  }, [])
+
   // Screen state: 'list' | 'create' | 'chat'
   const [screen, setScreen] = useState<'list' | 'create' | 'chat'>('list')
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -312,7 +334,15 @@ export function SupportPortal() {
   }
 
   return (
-    <div className="fixed bottom-6 sm:bottom-8 right-4 sm:right-6 z-50 flex flex-col items-end font-sans animate-entrance">
+    <div
+      className={`fixed z-50 flex flex-col items-end font-sans animate-entrance transition-all duration-300 ${
+        isOverlayOpen ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100'
+      }`}
+      style={{
+        right: '16px',
+        bottom: 'calc(20px + env(safe-area-inset-bottom))'
+      }}
+    >
       {/* 1. Compact Panel */}
       {isOpen && (
         <div className="w-[calc(100vw-32px)] sm:w-[400px] max-w-[400px] h-[480px] sm:h-[520px] bg-surface rounded-2xl shadow-2xl border border-border-warm mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
@@ -418,7 +448,7 @@ export function SupportPortal() {
                               )}
                               <span className="flex items-center space-x-1">
                                 <Calendar className="w-3 h-3" />
-                                <span>{new Date(safeConv.last_message_at || Date.now()).toLocaleDateString()}</span>
+                                <span>{safeConv.last_message_at ? new Date(safeConv.last_message_at).toLocaleDateString() : 'N/A'}</span>
                               </span>
                             </div>
                           </button>
@@ -604,7 +634,7 @@ export function SupportPortal() {
                                 {msg.message}
                               </div>
                               <span className="text-[9px] text-muted-foreground px-1 font-medium">
-                                {isCustomer ? 'You' : 'Agent'} • {new Date(msg.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {isCustomer ? 'You' : 'Agent'} • {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
                               </span>
                             </div>
                           )
@@ -647,10 +677,11 @@ export function SupportPortal() {
       {/* 2. Floating Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-primary-foreground p-4 rounded-full shadow-2xl flex items-center justify-center space-x-2 transition-all hover:scale-105 cursor-pointer relative"
+        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-primary-foreground rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-105 cursor-pointer relative w-14 h-14 sm:w-auto sm:h-auto sm:p-4 sm:space-x-2 min-w-[44px] min-h-[44px]"
         title="Talk to Support"
+        aria-label="Talk to Support"
       >
-        <MessageSquare className="w-6 h-6 text-brand-primary-foreground" />
+        <MessageSquare className="w-6 h-6 text-brand-primary-foreground shrink-0" />
         <span className="hidden sm:inline font-serif font-bold text-xs tracking-wider">Talk to Support</span>
         
         {unreadCount > 0 && (

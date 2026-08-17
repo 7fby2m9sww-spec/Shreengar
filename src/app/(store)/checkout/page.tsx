@@ -177,10 +177,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="space-y-6 pb-16">
-      <Breadcrumb items={[{ label: 'Cart', href: '/cart' }, { label: 'Checkout' }]} />
+    <div className="space-y-6 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'Cart', href: '/cart' }, { label: 'Checkout' }]} />
+      </div>
 
-      <h1 className="font-serif text-3xl font-bold text-foreground">Express Checkout</h1>
+      <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">Express Checkout</h1>
 
       {errorMsg && (
         <div className="p-4 bg-red-100 border border-red-300 text-red-800 text-xs rounded-xl font-medium">

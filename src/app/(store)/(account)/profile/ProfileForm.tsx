@@ -86,7 +86,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
       <div className="md:col-span-8 space-y-6">
         
         {/* Personal Details Section */}
-        <div className="bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm space-y-6">
+        <div className="bg-surface p-4 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-2xl border border-border shadow-sm space-y-6">
           <h3 className="font-serif text-lg font-bold text-foreground pb-3 border-b border-border">
             Personal Details
           </h3>
@@ -115,8 +115,8 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
               </div>
             </div>
 
-            <div className="pt-4 flex justify-end">
-              <Button type="submit" variant="primary" isLoading={isSubmitting}>
+            <div className="pt-4 flex justify-stretch sm:justify-end">
+              <Button type="submit" variant="primary" isLoading={isSubmitting} className="w-full sm:w-auto min-h-[48px] font-serif font-bold text-xs tracking-wider">
                 Save Profile Changes
               </Button>
             </div>
@@ -124,14 +124,14 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
         </div>
 
         {/* Contact Details Section */}
-        <div className="bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm space-y-6">
+        <div className="bg-surface p-4 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-2xl border border-border shadow-sm space-y-6">
           <h3 className="font-serif text-lg font-bold text-foreground pb-3 border-b border-border">
             Contact Details
           </h3>
           
           <div className="space-y-4">
             {/* Email Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-xl border border-border gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-[16px] sm:rounded-xl border border-border gap-3 sm:gap-4">
               <div className="flex items-start sm:items-center space-x-3 min-w-0 flex-1">
                 <Mail className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5 sm:mt-0" />
                 <div className="min-w-0 flex-1">
@@ -143,7 +143,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
               </div>
               <button
                 onClick={handleChangeEmail}
-                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent"
+                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1.5 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent min-h-[44px] sm:min-h-0 cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Change</span>
@@ -151,7 +151,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
             </div>
 
             {/* Phone Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-xl border border-border gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface-muted rounded-[16px] sm:rounded-xl border border-border gap-3 sm:gap-4">
               <div className="flex items-start sm:items-center space-x-3 min-w-0 flex-1">
                 <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5 sm:mt-0" />
                 <div className="min-w-0 flex-1">
@@ -163,7 +163,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
               </div>
               <button
                 onClick={handleChangePhone}
-                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent"
+                className="self-end sm:self-center text-xs text-accent font-semibold hover:text-accent/80 flex items-center space-x-1.5 transition-colors shrink-0 py-1.5 px-3 sm:p-0 rounded-lg bg-accent/10 sm:bg-transparent min-h-[44px] sm:min-h-0 cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Change</span>

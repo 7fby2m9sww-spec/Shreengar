@@ -122,11 +122,13 @@ export default function CartPage() {
   }
 
   return (
-    <div className="space-y-6 pb-16">
-      <Breadcrumb items={[{ label: 'Shopping Bag' }]} />
+    <div className="space-y-6 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'Shopping Bag' }]} />
+      </div>
 
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl font-bold text-foreground">
+        <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">
           Shopping Bag
           <span className="ml-2 text-lg font-normal text-muted-foreground">({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
         </h1>

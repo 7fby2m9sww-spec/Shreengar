@@ -27,55 +27,57 @@ export default async function AccountPage() {
   const avatarLetter = fullName[0].toUpperCase();
 
   return (
-    <div className="space-y-6 pb-16 max-w-4xl mx-auto font-sans">
+    <div className="space-y-6 pb-16 max-w-4xl mx-auto font-sans px-4 sm:px-6 lg:px-8">
       {/* Page Breadcrumb */}
-      <Breadcrumb items={[{ label: 'My Account' }]} />
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'My Account' }]} />
+      </div>
 
-      <h1 className="font-serif text-3xl font-bold text-foreground">My Account</h1>
+      <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">My Account</h1>
 
-      <div className="w-full bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm space-y-6">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
+      <div className="w-full bg-surface p-4 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-2xl border border-border shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-border gap-3">
           <h3 className="font-serif text-lg font-bold text-foreground">
             Account Information
           </h3>
           <Link
             href="/profile"
-            className="text-xs text-foreground font-semibold hover:text-accent flex items-center space-x-1.5 transition-colors"
+            className="text-xs text-foreground font-semibold hover:text-accent flex items-center space-x-1.5 transition-colors min-h-[44px] sm:min-h-0"
           >
             <span>Edit Profile</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-          <div className="space-y-4 text-sm">
-            {/* Full Name Block */}
-            <div className="flex items-center space-x-4 p-4 bg-surface-muted rounded-xl border border-border shadow-sm">
-              <User className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Full Name</p>
-                <p className="font-medium text-foreground text-sm">{fullName}</p>
-              </div>
+        <div className="space-y-4">
+          {/* Full Name Block */}
+          <div className="flex items-start gap-3.5 p-4 bg-surface-muted rounded-[16px] sm:rounded-xl border border-border shadow-xs">
+            <User className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1.5">Full Name</p>
+              <p className="font-medium text-foreground text-[16px] sm:text-base leading-tight">{fullName}</p>
             </div>
+          </div>
 
-            {/* Email Address Block */}
-            <div className="flex items-center space-x-4 p-4 bg-surface-muted rounded-xl border border-border shadow-sm">
-              <Mail className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Email Address</p>
-                <p className="font-medium text-foreground text-sm font-mono">{email}</p>
-              </div>
+          {/* Email Address Block */}
+          <div className="flex items-start gap-3.5 p-4 bg-surface-muted rounded-[16px] sm:rounded-xl border border-border shadow-xs">
+            <Mail className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1.5">Email Address</p>
+              <p className="font-medium text-foreground text-[16px] sm:text-base leading-tight font-mono break-all overflow-wrap-anywhere">{email}</p>
             </div>
+          </div>
 
-            {/* Phone Number Block */}
-            <div className="flex items-center space-x-4 p-4 bg-surface-muted rounded-xl border border-border shadow-sm">
-              <Phone className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Phone Number</p>
-                <p className="font-medium text-foreground text-sm">{phone}</p>
-              </div>
+          {/* Phone Number Block */}
+          <div className="flex items-start gap-3.5 p-4 bg-surface-muted rounded-[16px] sm:rounded-xl border border-border shadow-xs">
+            <Phone className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1.5">Phone Number</p>
+              <p className="font-medium text-foreground text-[16px] sm:text-base leading-tight">{phone}</p>
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 }

@@ -43,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [headerSearchQuery, setHeaderSearchQuery] = useState('')
+  const [isAccountDrawerOpen, setIsAccountDrawerOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -107,13 +108,16 @@ export const Header: React.FC<HeaderProps> = ({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setIsAccountDropdownOpen(false)
+        setIsAccountDrawerOpen(false)
+        setIsMobileMenuOpen(false)
+        setIsMobileSearchOpen(false)
       }
     }
 
     if (isAccountDropdownOpen) {
       document.addEventListener('mousedown', handleOutsideClick)
-      document.addEventListener('keydown', handleKeyDown)
     }
+    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick)
@@ -121,8 +125,71 @@ export const Header: React.FC<HeaderProps> = ({
     }
   }, [isAccountDropdownOpen])
 
+  // Listen for custom trigger event to open account drawer (from mobile sidebar bar)
+  useEffect(() => {
+    const handleOpenDrawer = () => {
+      setIsAccountDrawerOpen(true)
+      setIsMobileMenuOpen(false)
+      setIsMobileSearchOpen(false)
+      setIsAccountDropdownOpen(false)
+    }
+    window.addEventListener('open-account-drawer', handleOpenDrawer)
+    return () => {
+      window.removeEventListener('open-account-drawer', handleOpenDrawer)
+    }
+  }, [])
+
+  // Prevent body scroll when either mobile menu or account drawer is open
+  useEffect(() => {
+    if (isMobileMenuOpen || isAccountDrawerOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileMenuOpen, isAccountDrawerOpen])
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(prev => {
+      const next = !prev
+      if (next) {
+        setIsAccountDrawerOpen(false)
+        setIsMobileSearchOpen(false)
+        setIsAccountDropdownOpen(false)
+      }
+      return next
+    })
+  }
+
+  const toggleAccountDrawer = () => {
+    setIsAccountDrawerOpen(prev => {
+      const next = !prev
+      if (next) {
+        setIsMobileMenuOpen(false)
+        setIsMobileSearchOpen(false)
+        setIsAccountDropdownOpen(false)
+      }
+      return next
+    })
+  }
+
+  const toggleAccountDropdown = () => {
+    setIsAccountDropdownOpen(prev => {
+      const next = !prev
+      if (next) {
+        setIsMobileMenuOpen(false)
+        setIsMobileSearchOpen(false)
+        setIsAccountDrawerOpen(false)
+      }
+      return next
+    })
+  }
+
   const handleLogout = async () => {
     setIsAccountDropdownOpen(false)
+    setIsAccountDrawerOpen(false)
     setDynamicWishlistCount(0)
     await logout()
   }
@@ -134,31 +201,38 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-surface-warm/95 backdrop-blur-md border-b border-border-warm transition-all font-sans">
-      {/* Top Announcement Bar — Dynamic Realtime Coupon Ticker */}
-      <CouponAnnouncementBar />
+        {/* Top Announcement Bar — Dynamic Realtime Coupon Ticker */}
+        <CouponAnnouncementBar />
 
-      {/* Main Navigation Bar */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
-          <div className="flex h-16 sm:h-20 items-center justify-between">
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-foreground hover:bg-surface-muted rounded-xl transition-colors z-10"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+        {/* Main Navigation Bar */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="relative flex h-16 sm:h-20 items-center justify-between w-full">
+            {/* Mobile Menu Button (Left on Mobile, Hidden on Desktop) */}
+            <div className="flex md:hidden items-center">
+              <button
+                onClick={toggleMobileMenu}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                className="p-2 text-foreground hover:bg-surface-muted rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
 
-          {/* Unified Gold Brand Logo (Centered on Mobile Viewport) */}
-          <div className="md:static absolute left-1/2 -translate-x-1/2 md:translate-x-0 top-1/2 -translate-y-1/2 md:translate-y-0 flex items-center justify-center pointer-events-none max-w-[calc(100%-120px)] sm:max-w-none">
-            <div className="pointer-events-auto">
+            {/* Desktop Brand Logo (Left-aligned on Desktop) */}
+            <div className="hidden md:block">
               <ShreengarLogo />
             </div>
-          </div>
 
+            {/* Mobile Centered Brand Logo (Centered on Mobile) */}
+            <div className="absolute left-1/2 -translate-x-1/2 md:hidden">
+              <ShreengarLogo className="max-w-[155px]" />
+            </div>
 
-          {/* Desktop Category Navigation */}
-          {navCategories.length > 0 && (
+            {/* Desktop Category Navigation */}
             <nav className="hidden lg:flex items-center space-x-6 font-serif text-sm font-bold text-foreground">
+              <Link href="/shop" className="hover:text-gold transition-colors">
+                All Collections
+              </Link>
               {navCategories.slice(0, 5).map(cat => (
                 <Link
                   key={cat.id}
@@ -169,300 +243,471 @@ export const Header: React.FC<HeaderProps> = ({
                 </Link>
               ))}
             </nav>
-          )}
 
-          {/* Action Tools: Search, Wishlist, Cart, Profile */}
-          <div className="flex items-center space-x-2.5 sm:space-x-4 lg:space-x-5 z-10">
-            {/* Desktop Search Input Bar */}
-            <form action="/shop" method="GET" className="hidden sm:flex items-center relative min-w-0">
-              <input
-                type="text"
-                name="search"
-                placeholder="Search Anarkalis..."
-                className="w-36 md:w-48 lg:w-56 pl-9 pr-4 py-1.5 text-xs bg-surface-warm border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-44 md:focus:w-56 focus:ring-1 focus:ring-gold transition-all min-w-0"
-              />
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
-            </form>
+            {/* Action Tools: Search, Wishlist, Cart, Profile */}
+            <div className="flex items-center space-x-2.5 sm:space-x-4 lg:space-x-5 z-10">
+              {/* Desktop Search Input Bar */}
+              <form action="/shop" method="GET" className="hidden sm:flex items-center relative min-w-0">
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search Anarkalis..."
+                  className="w-36 md:w-48 lg:w-56 pl-9 pr-4 py-1.5 text-xs bg-surface-warm border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:w-44 md:focus:w-56 focus:ring-1 focus:ring-gold transition-all min-w-0"
+                />
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
+              </form>
 
-            {/* Mobile Search Icon Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="sm:hidden p-2 text-foreground hover:text-gold transition-colors"
-              title="Search"
-              aria-label="Toggle mobile search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
+              {/* Mobile Search Icon Button */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                className="sm:hidden p-2 text-foreground hover:text-gold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                title="Search"
+                aria-label="Toggle mobile search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
 
-            {/* Wishlist Icon */}
-            <Link
-              href="/wishlist"
-              className="relative p-2 text-foreground hover:text-gold transition-colors"
-              title="Wishlist"
-            >
-              <Heart className="w-5 h-5" />
-              {finalWishlistCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-gold text-brand-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow">
-                  {finalWishlistCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Cart Icon — opens MiniCart drawer */}
-            <button
-              onClick={openMiniCart}
-              className="relative p-2 text-foreground hover:text-gold transition-colors cursor-pointer"
-              title="Shopping Bag"
-              aria-label="Open shopping bag"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {finalCartCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-brand-primary text-brand-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow">
-                  {finalCartCount}
-                </span>
-              )}
-            </button>
-
-            {/* Dynamic Account Dropdown */}
-            {hasSession ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
-                  aria-haspopup="true"
-                  aria-expanded={isAccountDropdownOpen}
-                  className="flex items-center space-x-2 p-1 rounded-full hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all border border-border/40"
-                >
-                  <div className="w-8 h-8 rounded-full bg-rose-950 text-amber-300 font-bold text-xs flex items-center justify-center">
-                    {session.type === 'customer'
-                      ? session.email[0].toUpperCase()
-                      : session.type === 'admin'
-                      ? session.email[0].toUpperCase()
-                      : 'U'}
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground pr-1" />
-                </button>
-
-                {/* Dropdown Menu */}
-                {isAccountDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-72 bg-surface-elevated rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-border/40 p-2 text-sm z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-3 pt-3 pb-4 mb-2 border-b border-border/30 text-foreground">
-                      <p className="font-serif font-medium text-base line-clamp-1">
-                        {session.type === 'customer' || session.type === 'admin'
-                          ? session.fullName
-                          : 'Guest'}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {session.type === 'customer' || session.type === 'admin'
-                          ? session.email
-                          : ''}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col space-y-1">
-                      {session.type === 'admin' && (
-                        <>
-                          <Link
-                            href="/admin"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                            className="flex items-center space-x-3 px-3 h-11 rounded-lg text-brand-primary bg-amber-100/50 hover:bg-amber-100/80 font-semibold transition-colors"
-                          >
-                            <LayoutDashboard className="w-4.5 h-4.5 text-brand-primary" />
-                            <span>Admin Dashboard</span>
-                          </Link>
-
-                          <Link
-                            href="/auth/login"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                            className="flex items-center space-x-3 px-3 h-11 rounded-lg text-foreground hover:bg-primary/5 hover:text-accent font-medium transition-colors"
-                          >
-                            <CircleUserRound className="w-4.5 h-4.5 text-muted-foreground" />
-                            <span>Switch to Customer</span>
-                          </Link>
-                        </>
-                      )}
-
-                      {session.type === 'customer' && (
-                        <>
-                          <Link
-                            href="/account"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                            className="flex items-center space-x-3 px-3 h-11 rounded-lg text-foreground hover:bg-primary/5 hover:text-accent font-medium transition-colors"
-                          >
-                            <CircleUserRound className="w-4.5 h-4.5 text-muted-foreground" />
-                            <span>My Account</span>
-                          </Link>
-
-                          <Link
-                            href="/orders"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                            className="flex items-center space-x-3 px-3 h-11 rounded-lg text-foreground hover:bg-primary/5 hover:text-accent font-medium transition-colors"
-                          >
-                            <Package className="w-4.5 h-4.5 text-muted-foreground" />
-                            <span>My Orders</span>
-                          </Link>
-
-                          <Link
-                            href="/wishlist"
-                            onClick={() => setIsAccountDropdownOpen(false)}
-                            className="flex items-center space-x-3 px-3 h-11 rounded-lg text-foreground hover:bg-primary/5 hover:text-accent font-medium transition-colors"
-                          >
-                            <Heart className="w-4.5 h-4.5 text-muted-foreground" />
-                            <span>Wishlist</span>
-                          </Link>
-                        </>
-                      )}
-
-                      {mounted && (
-                        <div className="flex items-center justify-between px-3 h-11">
-                          <span className="text-sm font-medium text-foreground">Theme</span>
-                          <div className="flex items-center space-x-1 bg-surface-muted rounded-full p-0.5 border border-border/40">
-                            <button
-                              onClick={() => setTheme('light')}
-                              className={`p-1.5 rounded-full transition-colors ${theme === 'light' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                            >
-                              <Sun className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setTheme('dark')}
-                              className={`p-1.5 rounded-full transition-colors ${theme === 'dark' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                            >
-                              <Moon className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-2 pt-2 border-t border-border/30">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-red-600/90 hover:bg-red-500/10 hover:text-red-600 font-medium transition-colors"
-                      >
-                        <LogOut className="w-4.5 h-4.5" />
-                        <span>Log Out</span>
-                      </button>
-                    </div>
-                  </div>
+              {/* Wishlist Icon */}
+              <Link
+                href="/wishlist"
+                className="relative p-2 text-foreground hover:text-gold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Wishlist"
+              >
+                <Heart className="w-5 h-5" />
+                {finalWishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-gold text-brand-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow">
+                    {finalWishlistCount}
+                  </span>
                 )}
-              </div>
-            ) : (
-                <>
-                  <div className="hidden sm:flex items-center space-x-2 text-xs font-serif font-bold">
+              </Link>
+
+              {/* Cart Icon — opens MiniCart drawer */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  setIsAccountDrawerOpen(false)
+                  setIsAccountDropdownOpen(false)
+                  openMiniCart()
+                }}
+                className="relative p-2 text-foreground hover:text-gold transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Shopping Bag"
+                aria-label="Open shopping bag"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {finalCartCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-brand-primary text-brand-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center shadow">
+                    {finalCartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Account Profile Trigger (Desktop Popover vs Mobile Drawer) */}
+              {/* Desktop Trigger */}
+              <div className="hidden md:block">
+                {hasSession ? (
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={toggleAccountDropdown}
+                      aria-haspopup="true"
+                      aria-expanded={isAccountDropdownOpen}
+                      className="flex items-center space-x-2 p-1 rounded-full hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all border border-border/40 min-w-[44px] min-h-[44px] justify-center cursor-pointer"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-rose-950 text-amber-300 font-bold text-xs flex items-center justify-center border border-gold/20">
+                        {session.email[0].toUpperCase()}
+                      </div>
+                      <span className="hidden md:inline text-xs font-bold text-foreground">
+                        {session.fullName || 'Account'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    </button>
+
+                    {isAccountDropdownOpen && (
+                      <div className="absolute right-0 mt-2.5 w-60 bg-surface rounded-2xl shadow-xl border border-border py-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-sans">
+                        <div className="px-4 py-2 border-b border-border mb-2">
+                          <p className="text-xs text-muted-foreground">Signed in as</p>
+                          <p className="text-xs font-bold text-foreground truncate mt-0.5">{session.email}</p>
+                        </div>
+
+                        {session.type === 'admin' ? (
+                          <>
+                            <Link
+                              href="/admin/dashboard"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
+                              <span>Admin Dashboard</span>
+                            </Link>
+                            <Link
+                              href="/admin/settings"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <Settings className="w-4 h-4 text-muted-foreground" />
+                              <span>Admin Settings</span>
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              href="/account"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <User className="w-4 h-4 text-muted-foreground" />
+                              <span>My Profile</span>
+                            </Link>
+                            <Link
+                              href="/orders"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                              <span>Order History</span>
+                            </Link>
+                            <Link
+                              href="/addresses"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <span>Saved Addresses</span>
+                            </Link>
+                            <Link
+                              href="/settings"
+                              onClick={() => setIsAccountDropdownOpen(false)}
+                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                            >
+                              <Settings className="w-4 h-4 text-muted-foreground" />
+                              <span>Preferences</span>
+                            </Link>
+                          </>
+                        )}
+
+                        <div className="border-t border-border mt-2 pt-2 px-2">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-red-600/90 hover:bg-red-500/10 hover:text-red-600 font-medium transition-colors cursor-pointer"
+                          >
+                            <LogOut className="w-4.5 h-4.5" />
+                            <span>Log Out</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 text-xs font-serif font-bold">
                     <Link href="/auth/login" className="px-3.5 py-2 text-foreground hover:text-gold transition-colors">
                       Sign In
                     </Link>
                     <Link href="/auth/signup" className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-brand-primary-foreground rounded-xl shadow-md transition-colors">
                       Join Us
                     </Link>
+                    <ThemeToggle />
                   </div>
-                  <ThemeToggle />
-                </>
-            )}
+                )}
+              </div>
+
+              {/* Mobile Account Trigger */}
+              <div className="block md:hidden">
+                <button
+                  onClick={toggleAccountDrawer}
+                  aria-label="Open Account Directory"
+                  className="flex items-center justify-center p-2 rounded-full hover:bg-surface-muted focus:outline-none transition-all border border-border/40 min-w-[44px] min-h-[44px] cursor-pointer"
+                >
+                  {hasSession ? (
+                    <div className="w-8 h-8 rounded-full bg-rose-950 text-amber-300 font-bold text-xs flex items-center justify-center border border-gold/20">
+                      {session.email[0].toUpperCase()}
+                    </div>
+                  ) : (
+                    <User className="w-5 h-5 text-foreground" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Expandable Search Bar */}
-      {isMobileSearchOpen && (
-        <div className="sm:hidden border-t border-b border-border-warm bg-surface-warm/98 backdrop-blur-md px-4 py-2.5 z-40 animate-in slide-in-from-top-1 duration-150">
-          <form action="/shop" method="GET" className="relative flex items-center gap-2 w-full min-w-0">
-            <div className="relative flex-1 min-w-0">
+        {/* Mobile Expandable Search Bar */}
+        {isMobileSearchOpen && (
+          <div className="sm:hidden border-t border-b border-border-warm bg-surface-warm/98 backdrop-blur-md px-4 py-2.5 z-40 animate-in slide-in-from-top-1 duration-150">
+            <form action="/shop" method="GET" className="relative flex items-center gap-2 w-full min-w-0">
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="text"
+                  name="search"
+                  value={headerSearchQuery}
+                  onChange={(e) => setHeaderSearchQuery(e.target.value)}
+                  placeholder="Search Anarkalis, Sarees..."
+                  autoFocus
+                  className="w-full pl-9 pr-8 py-2 text-xs bg-surface border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold transition-all min-w-0 truncate"
+                />
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
+                {headerSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setHeaderSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
+                    aria-label="Clear search text"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(false)}
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 px-1"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Mobile Storefront Hamburger Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in fade-in duration-200">
+            <form action="/shop" method="GET" className="relative">
               <input
                 type="text"
                 name="search"
-                value={headerSearchQuery}
-                onChange={(e) => setHeaderSearchQuery(e.target.value)}
-                placeholder="Search Anarkalis, Sarees..."
-                autoFocus
-                className="w-full pl-9 pr-8 py-2 text-xs bg-surface border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold transition-all min-w-0 truncate"
+                placeholder="Search Anarkalis, Kurtis..."
+                className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-border rounded-lg text-foreground"
               />
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
-              {headerSearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setHeaderSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                  aria-label="Clear search text"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(false)}
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 px-1"
-            >
-              Cancel
-            </button>
-          </form>
-        </div>
-      )}
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            </form>
 
-      {/* Mobile Drawer Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl">
-          <form action="/shop" method="GET" className="relative flex items-center w-full min-w-0">
-            <input
-              type="text"
-              name="search"
-              placeholder="Search Anarkalis..."
-              className="w-full pl-9 pr-4 py-2 text-xs bg-surface border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold min-w-0 truncate"
-            />
-            <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
-          </form>
-
-          {navCategories.length > 0 && (
             <nav className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold py-1">
+                Home
+              </Link>
+              <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-gold py-1">
+                All Collections
+              </Link>
               {navCategories.map(cat => (
                 <Link
                   key={cat.id}
                   href={`/category/${cat.slug}`}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="hover:text-gold"
+                  className="hover:text-gold py-1"
                 >
                   {cat.name}
                 </Link>
               ))}
-            </nav>
-          )}
 
-          <div className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
-            {hasSession ? (
-              <>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
-                  <span>Account</span>
-                  <ThemeToggle />
+              {hasSession ? (
+                <div className="pt-2 border-t border-border/30">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false)
+                      setIsAccountDrawerOpen(true)
+                    }}
+                    className="w-full text-left font-serif font-bold text-amber-800 dark:text-gold py-2 flex items-center justify-between min-h-[44px] cursor-pointer"
+                  >
+                    <span>Account Directory &rarr;</span>
+                  </button>
                 </div>
-                <Link href="/account" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link>
-                <Link href="/orders" onClick={() => setIsMobileMenuOpen(false)}>My Orders</Link>
-                <Link href="/wishlist" onClick={() => setIsMobileMenuOpen(false)}>Wishlist</Link>
-                <button onClick={handleLogout} className="text-left text-red-600">Log Out</button>
-              </>
-            ) : (
-              <div className="pt-2 flex items-center space-x-3 text-xs">
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-2 bg-surface border border-border text-foreground rounded-lg font-bold"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-4 py-2 bg-brand-primary text-brand-primary-foreground rounded-lg font-bold"
-                >
-                  Create Account
-                </Link>
-              </div>
-            )}
+              ) : (
+                <div className="pt-3 border-t border-border/30 flex flex-col space-y-2">
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 bg-surface border border-border text-foreground rounded-lg font-bold flex items-center justify-center min-h-[44px]"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 bg-brand-primary text-brand-primary-foreground rounded-lg font-bold flex items-center justify-center min-h-[44px]"
+                  >
+                    Create Account
+                  </Link>
+                </div>
+              )}
+            </nav>
           </div>
-        </div>
-      )}
-    </header>
-    <MiniCart />
+        )}
+
+        {/* Unified Mobile Account Directory Drawer */}
+        {isAccountDrawerOpen && (
+          <div className="fixed inset-0 z-50 md:hidden flex justify-end animate-in fade-in duration-300" role="dialog" aria-modal="true" aria-label="Account Directory">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/40 dark:bg-black/70 transition-opacity duration-300"
+              onClick={() => setIsAccountDrawerOpen(false)}
+            />
+
+            {/* Drawer Content */}
+            <div
+              className="relative w-[88vw] max-w-[380px] h-[100dvh] bg-surface-elevated shadow-2xl border-l border-border flex flex-col justify-between overflow-y-auto z-10 transition-transform duration-300 ease-in-out translate-x-0"
+              style={{
+                paddingTop: 'calc(1rem + env(safe-area-inset-top))',
+                paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
+                paddingLeft: '1.25rem',
+                paddingRight: '1.25rem',
+              }}
+            >
+              <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-border-warm pb-3">
+                  <span className="font-serif font-bold text-lg text-foreground">Account Directory</span>
+                  <button
+                    onClick={() => setIsAccountDrawerOpen(false)}
+                    className="p-2 rounded-lg text-foreground hover:bg-rose-900/10 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                    aria-label="Close directory"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Profile Card Mini */}
+                <div className="flex items-center space-x-3.5 pb-4 border-b border-border-warm">
+                  {hasSession ? (
+                    <>
+                      <div className="w-12 h-12 rounded-full bg-rose-950 text-amber-300 font-serif font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-gold/30">
+                        {session.email[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-serif font-bold text-base text-foreground leading-snug line-clamp-1">
+                          {session.fullName || 'Customer'}
+                        </h3>
+                        <span className="text-xs text-muted-foreground font-mono block truncate mt-0.5">
+                          {session.email}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-full bg-surface-muted text-muted-foreground font-serif font-bold text-lg flex items-center justify-center shrink-0 shadow-sm border border-border">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-serif font-bold text-base text-foreground leading-snug">Guest User</h3>
+                        <span className="text-xs text-muted-foreground block mt-0.5">
+                          Please sign in to manage account
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Links */}
+                <nav className="flex flex-col space-y-1">
+                  {hasSession ? (
+                    <>
+                      <Link
+                        href="/account"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      >
+                        <CircleUserRound className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>My Account</span>
+                      </Link>
+
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      >
+                        <Package className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>My Orders</span>
+                      </Link>
+
+                      <Link
+                        href="/wishlist"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      >
+                        <Heart className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>Wishlist</span>
+                      </Link>
+
+                      <Link
+                        href="/addresses"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      >
+                        <MapPin className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>Addresses</span>
+                      </Link>
+
+                      <Link
+                        href="/settings"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      >
+                        <Settings className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>Settings</span>
+                      </Link>
+                    </>
+                  ) : (
+                    <div className="pt-2 flex flex-col space-y-2.5">
+                      <Link
+                        href="/auth/login"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="w-full h-11 flex items-center justify-center bg-brand-primary text-brand-primary-foreground font-serif font-bold text-sm rounded-xl shadow-md hover:bg-brand-primary-hover transition-colors"
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        href="/auth/signup"
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="w-full h-11 flex items-center justify-center bg-surface border border-border text-foreground font-serif font-bold text-sm rounded-xl hover:bg-surface-muted transition-colors"
+                      >
+                        Create Account
+                      </Link>
+                    </div>
+                  )}
+                </nav>
+              </div>
+
+              {/* Footer Area: Theme Toggle & Logout */}
+              <div className="space-y-4 pt-4 border-t border-border-warm">
+                {mounted && (
+                  <div className="flex items-center justify-between px-3 py-2 bg-surface-muted/50 rounded-xl border border-border-warm/50">
+                    <span className="text-xs font-bold text-foreground uppercase tracking-wider">Appearance</span>
+                    <div className="flex items-center space-x-1 bg-surface-muted rounded-full p-0.5 border border-border/40">
+                      <button
+                        onClick={() => setTheme('light')}
+                        className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${theme === 'light' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                        aria-label="Light mode"
+                      >
+                        <Sun className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setTheme('dark')}
+                        className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${theme === 'dark' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                        aria-label="Dark mode"
+                      >
+                        <Moon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {hasSession && (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center space-x-2 px-3 h-[50px] rounded-xl text-red-600/90 hover:bg-red-500/10 hover:text-red-600 font-bold transition-all border border-transparent cursor-pointer"
+                  >
+                    <LogOut className="w-[18px] h-[18px]" />
+                    <span>Log Out</span>
+                  </button>
+                )}
+
+                <div className="text-[10px] text-center text-muted-foreground font-serif tracking-widest uppercase">
+                  SHREENGAR ROYAL COUTURE © 2026
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+      <MiniCart />
     </>
   )
 }

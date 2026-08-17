@@ -19,10 +19,12 @@ export default async function MyOrdersPage() {
   const orders = await getOrdersForUser(userId)
 
   return (
-    <div className="space-y-6 pb-16 font-sans">
-      <Breadcrumb items={[{ label: 'My Orders' }]} />
+    <div className="space-y-6 pb-16 font-sans px-4 sm:px-6 lg:px-8">
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'My Orders' }]} />
+      </div>
 
-      <h1 className="font-serif text-3xl font-bold text-foreground">My Purchase History</h1>
+      <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">My Purchase History</h1>
 
       {orders.length === 0 ? (
         <AccountEmptyState
@@ -37,7 +39,7 @@ export default async function MyOrdersPage() {
           {orders.map(order => (
             <div
               key={order.id}
-              className="bg-surface rounded-2xl border border-border shadow-sm p-6 space-y-4"
+              className="bg-surface rounded-2xl border border-border shadow-sm p-4 sm:p-6 lg:p-8 space-y-4"
             >
               {/* Header info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border text-xs text-foreground">

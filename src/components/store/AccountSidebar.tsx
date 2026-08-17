@@ -10,7 +10,8 @@ import {
   MapPin,
   Settings,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Menu
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Profile } from '@/lib/auth/getSession'
@@ -45,44 +46,71 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
     await logout()
   }
 
+  const navLinks = (
+    <div className="space-y-1.5 font-sans">
+      {accountNavigation.map((item) => (
+        <AccountNavItem
+          key={item.href}
+          href={item.href}
+          label={item.label}
+          icon={item.icon}
+        />
+      ))}
+
+      <button
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive font-medium transition-colors disabled:opacity-50 mt-4 border border-transparent cursor-pointer"
+      >
+        <LogOut className="w-[18px] h-[18px]" />
+        <span className="flex-1 text-left">{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
+      </button>
+    </div>
+  )
+
   return (
-    <aside className="hidden md:block w-64 xl:w-72 flex-shrink-0">
-      {/* Profile Header */}
-      <div className="flex items-center space-x-4 mb-6 px-3">
-        <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center shrink-0 shadow-sm">
-          {avatarLetter}
-        </div>
-        <div>
-          <h3 className="font-serif font-semibold text-base text-foreground leading-tight line-clamp-1">{fullName}</h3>
-          <div className="flex items-center space-x-1.5 text-[11px] text-success font-medium mt-1">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Verified Customer</span>
+    <>
+      {/* Mobile Drawer Trigger Bar */}
+      <div className="md:hidden flex items-center justify-between p-3.5 bg-surface rounded-xl border border-border shadow-xs mb-4 w-full">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-serif font-bold text-xs flex items-center justify-center shadow-sm">
+            {avatarLetter}
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-foreground font-serif leading-none">{fullName}</h4>
           </div>
         </div>
+        
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-account-drawer'))}
+          className="p-2 rounded-lg border border-border text-foreground bg-surface-muted/50 hover:bg-surface-muted min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+          aria-label="Open Account Directory"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="space-y-1">
-        <div className="space-y-1.5">
-          {accountNavigation.map((item) => (
-            <AccountNavItem
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              icon={item.icon}
-            />
-          ))}
-
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive font-medium transition-colors disabled:opacity-50 mt-4 border border-transparent"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-            <span className="flex-1 text-left">{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
-          </button>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-64 xl:w-72 flex-shrink-0">
+        {/* Profile Header */}
+        <div className="flex items-center space-x-4 mb-6 px-3">
+          <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center shrink-0 shadow-sm">
+            {avatarLetter}
+          </div>
+          <div>
+            <h3 className="font-serif font-semibold text-base text-foreground leading-tight line-clamp-1">{fullName}</h3>
+            <div className="flex items-center space-x-1.5 text-[11px] text-success font-medium mt-1">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Verified Customer</span>
+            </div>
+          </div>
         </div>
-      </nav>
-    </aside>
+
+        {/* Navigation Links */}
+        <nav className="space-y-1">
+          {navLinks}
+        </nav>
+      </aside>
+    </>
   )
 }

@@ -120,8 +120,15 @@
   overflow: hidden !important;
   width: 100% !important;
   white-space: nowrap !important;
-  height: 36px !important;
-  max-height: 36px !important;
+  height: 34px !important;
+  max-height: 34px !important;
+}
+
+@media (min-width: 640px) {
+  .announcement-viewport {
+    height: 36px !important;
+    max-height: 36px !important;
+  }
 }
 
 .announcement-track {
@@ -274,7 +281,8 @@
   .animate-pulse-glow,
   .animate-float,
   .animate-shimmer,
-  .btn-shine::after {
+  .btn-shine::after,
+  .announcement-track {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

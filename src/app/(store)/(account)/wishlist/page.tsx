@@ -17,12 +17,14 @@ export default async function WishlistPage() {
   const wishlistedProducts = await getWishlistForUser(userId)
 
   return (
-    <div className="space-y-6 pb-16 font-sans">
-      <Breadcrumb items={[{ label: 'My Wishlist' }]} />
+    <div className="space-y-6 pb-16 font-sans px-4 sm:px-6 lg:px-8">
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'My Wishlist' }]} />
+      </div>
 
       <div className="flex items-center space-x-3">
-        <Heart className="w-7 h-7 text-destructive fill-destructive" />
-        <h1 className="font-serif text-3xl font-bold text-foreground">My Saved Wishlist</h1>
+        <Heart className="w-6 h-6 sm:w-7 sm:h-7 text-destructive fill-destructive shrink-0" />
+        <h1 className="font-serif text-[34px] sm:text-4xl font-bold text-foreground">My Saved Wishlist</h1>
       </div>
 
       {wishlistedProducts.length === 0 ? (
@@ -34,7 +36,7 @@ export default async function WishlistPage() {
           ctaHref="/shop"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {wishlistedProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}

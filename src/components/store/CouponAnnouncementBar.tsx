@@ -141,7 +141,7 @@ export const CouponAnnouncementBar: React.FC = () => {
   }, [coupons, copiedCode, showToast])
 
   return (
-    <div className="announcement-viewport bg-rose-950 text-amber-100 text-xs h-9 border-b border-amber-400/20 shadow-sm overflow-hidden whitespace-nowrap flex items-center select-none">
+    <div className="announcement-viewport bg-rose-950 text-amber-100 text-[11px] sm:text-xs h-[34px] sm:h-9 border-b border-amber-400/20 shadow-sm overflow-hidden whitespace-nowrap flex items-center select-none">
       <div className="announcement-track flex flex-row items-center whitespace-nowrap min-w-max">
         {/* Primary Dynamic Group */}
         <div className="announcement-group inline-flex items-center space-x-6 px-6 shrink-0 whitespace-nowrap">

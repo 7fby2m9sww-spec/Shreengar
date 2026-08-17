@@ -158,9 +158,9 @@ export default function AddressForm({ initialAddresses }: AddressFormProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-3xl font-bold text-foreground">Saved Delivery Addresses</h1>
-        <Button onClick={handleOpenAdd} variant="primary" size="md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="font-serif text-[28px] sm:text-3xl font-bold text-foreground leading-tight">Saved Delivery Addresses</h1>
+        <Button onClick={handleOpenAdd} variant="primary" size="md" className="w-full sm:w-auto min-h-[48px] sm:min-h-0 font-serif font-bold text-xs tracking-wider">
           <Plus className="w-4 h-4 mr-1" />
           <span>Add New Address</span>
         </Button>
@@ -179,7 +179,7 @@ export default function AddressForm({ initialAddresses }: AddressFormProps) {
           {initialAddresses.map((addr) => (
             <div
               key={addr.id}
-              className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-3 relative"
+              className="bg-surface p-4 sm:p-6 lg:p-8 rounded-[20px] sm:rounded-2xl border border-border shadow-sm space-y-3 relative"
             >
               <div className="flex items-start justify-between">
                 <span className="font-serif font-bold text-lg text-foreground">{addr.full_name}</span>

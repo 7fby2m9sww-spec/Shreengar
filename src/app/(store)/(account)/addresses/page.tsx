@@ -49,9 +49,11 @@ export default async function SavedAddressesPage() {
   }
 
   return (
-    <div className="space-y-6 pb-16 max-w-4xl mx-auto font-sans">
+    <div className="space-y-6 pb-16 max-w-4xl mx-auto font-sans px-4 sm:px-6 lg:px-8">
       {/* Navigation Breadcrumbs */}
-      <Breadcrumb items={[{ label: 'Saved Addresses' }]} />
+      <div className="hidden sm:block">
+        <Breadcrumb items={[{ label: 'Saved Addresses' }]} />
+      </div>
 
       {/* Render interactive address form manager */}
       <AddressForm initialAddresses={(addresses || []) as Address[]} />

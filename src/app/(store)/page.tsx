@@ -71,7 +71,7 @@ export default async function HomePage() {
   const desktopPosY = heroSettings.desktop_position_y || 'center'
   const desktopObjectPosition = `${desktopPosX} ${desktopPosY}`
 
-  const mobilePosX = heroSettings.mobile_position_x || 'center'
+  const mobilePosX = heroSettings.mobile_position_x || '65%'
   const mobilePosY = heroSettings.mobile_position_y || 'center'
   const mobileObjectPosition = `${mobilePosX} ${mobilePosY}`
 
@@ -103,7 +103,7 @@ export default async function HomePage() {
   return (
     <div className="w-full pb-12">
       {/* 1. Full-Bleed Homepage Hero Banner — ALWAYS Position 1 (Locked) */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 isolate overflow-hidden h-[500px] md:h-[530px] lg:h-[540px] flex items-center bg-[#23000C] -mt-6">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 isolate overflow-hidden h-[520px] sm:h-[530px] lg:h-[540px] flex items-center bg-[#23000C] -mt-6">
         {/* Layer 1: Base Fallback Surface (z-0) */}
         <div className="absolute inset-0 bg-[#23000C] z-0" />
 
@@ -155,27 +155,27 @@ export default async function HomePage() {
         </div>
 
         {/* Layer 5: Dynamic Admin-Managed Content (z-30, Inner Max-Width Alignment Container) */}
-        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-center px-6 lg:px-10">
-          <div className="max-w-[450px] space-y-4 md:space-y-5">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 mb-2">
+        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-center px-5 sm:px-6 lg:px-10">
+          <div className="max-w-[450px] space-y-4 md:space-y-5 py-10 sm:py-0">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 mb-1">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="uppercase tracking-widest text-[9px] sm:text-[10px] font-bold text-[#D4AF37]">
+              <span className="uppercase tracking-widest text-[11px] sm:text-xs font-bold text-[#D4AF37]">
                 {heroEyebrow}
               </span>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-[58px] font-bold leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
+            <h1 className="font-serif text-[clamp(36px,9vw,52px)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
               {formatTitleWithBreaks(heroTitle)}
             </h1>
 
-            <p className="text-sm sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
+            <p className="text-[15px] sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
               {heroSubtitle}
             </p>
 
-            <div className="pt-4 sm:pt-5">
+            <div className="pt-2 sm:pt-4">
               <Link
                 href={heroCtaLink}
-                className="inline-flex h-[46px] w-[200px] items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] px-6 font-serif font-bold text-[#25000D] shadow-md transition-colors hover:bg-[#E0B95A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC]"
+                className="inline-flex h-[48px] px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit"
               >
                 <span>{heroCtaText}</span>
                 <ArrowRight className="w-4 h-4" />

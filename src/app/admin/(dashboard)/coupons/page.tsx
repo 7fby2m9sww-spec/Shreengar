@@ -190,7 +190,7 @@ export default function AdminCouponsPage() {
       min_spend: Number(minSpend),
       max_discount: 1500,
       start_date: editingCoupon?.start_date || new Date().toISOString(),
-      end_date: editingCoupon?.end_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+      end_date: editingCoupon?.end_date || new Date(new Date().getTime() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       usage_limit: 500,
       used_count: editingCoupon?.used_count || 0,
       is_active: editingCoupon ? editingCoupon.is_active : true,
