@@ -137,11 +137,17 @@ export default async function HomePage() {
           </>
         )}
 
-        {/* Layer 3: Cinematic Translucent Royal Maroon Gradient Overlay (z-10) */}
+        {/* Layer 3: Cinematic Translucent Royal Maroon Gradient Overlay (z-10, responsive gradient) */}
         <div
-          className="absolute inset-0 z-10 pointer-events-none"
+          className="absolute inset-0 z-10 pointer-events-none hidden sm:block"
           style={{
             background: 'linear-gradient(90deg, rgba(35, 0, 12, 0.98) 0%, rgba(66, 0, 23, 0.94) 20%, rgba(76, 5, 25, 0.76) 38%, rgba(76, 5, 25, 0.40) 52%, rgba(76, 5, 25, 0.12) 66%, rgba(76, 5, 25, 0.02) 82%, rgba(76, 5, 25, 0) 100%)',
+          }}
+        />
+        <div
+          className="absolute inset-0 z-10 pointer-events-none block sm:hidden"
+          style={{
+            background: 'linear-gradient(180deg, rgba(35, 0, 12, 0.25) 0%, rgba(35, 0, 12, 0.75) 45%, rgba(26, 1, 9, 0.98) 95%)',
           }}
         />
 
@@ -155,27 +161,27 @@ export default async function HomePage() {
         </div>
 
         {/* Layer 5: Dynamic Admin-Managed Content (z-30, Inner Max-Width Alignment Container) */}
-        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-center px-5 sm:px-6 lg:px-10">
-          <div className="max-w-[450px] space-y-4 md:space-y-5 py-10 sm:py-0">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="uppercase tracking-widest text-[11px] sm:text-xs font-bold text-[#D4AF37]">
+        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-end sm:items-center px-5 sm:px-6 lg:px-10 pb-14 sm:pb-0">
+          <div className="max-w-[450px] space-y-3.5 sm:space-y-4 md:space-y-5">
+            <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 max-w-full">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+              <span className="uppercase tracking-wider sm:tracking-widest text-[10px] sm:text-xs font-bold text-[#D4AF37] truncate">
                 {heroEyebrow}
               </span>
             </div>
 
-            <h1 className="font-serif text-[clamp(36px,9vw,52px)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
+            <h1 className="font-serif text-[clamp(2.6rem,11vw,3.5rem)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
               {formatTitleWithBreaks(heroTitle)}
             </h1>
 
-            <p className="text-[15px] sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
+            <p className="text-sm sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
               {heroSubtitle}
             </p>
 
-            <div className="pt-2 sm:pt-4">
+            <div className="pt-1.5 sm:pt-4">
               <Link
                 href={heroCtaLink}
-                className="inline-flex h-[48px] px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit"
+                className="inline-flex h-12 sm:h-[48px] px-5 sm:px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit"
               >
                 <span>{heroCtaText}</span>
                 <ArrowRight className="w-4 h-4" />

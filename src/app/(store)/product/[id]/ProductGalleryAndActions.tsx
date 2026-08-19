@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { toggleWishlistAction, checkWishlistStatusAction } from '@/actions/wishlist/actions'
 import Image from 'next/image'
 import { Heart, ShoppingBag, Star, ShieldCheck, Truck, RefreshCw, Check, Loader2 } from 'lucide-react'
 import { Product, ProductVariant } from '@/types/database'
@@ -167,7 +168,89 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
   const [validationError, setValidationError] = useState<string | null>(null)
   const { addItem, openMiniCart } = useCart()
   const { showToast } = useToast()
-  const { isAuthenticated } = useAuth()
+  const { session, isAuthenticated } = useAuth()
+
+  // Sync wishlist status
+  useEffect(() => {
+    let active = true
+    async function checkWishlist() {
+      if (session.type === 'customer') {
+        const isSaved = await checkWishlistStatusAction(product.id)
+        if (active) {
+          setIsWishlisted(isSaved)
+        }
+      } else {
+        try {
+          const localWish = JSON.parse(localStorage.getItem('shreengar_wishlist') || '[]')
+          if (active) {
+            setIsWishlisted(localWish.includes(product.id))
+          }
+        } catch {
+          if (active) {
+            setIsWishlisted(false)
+          }
+        }
+      }
+    }
+    checkWishlist()
+
+    const handleSync = async () => {
+      if (session.type === 'customer') {
+        const isSaved = await checkWishlistStatusAction(product.id)
+        if (active) setIsWishlisted(isSaved)
+      } else {
+        try {
+          const localWish = JSON.parse(localStorage.getItem('shreengar_wishlist') || '[]')
+          if (active) setIsWishlisted(localWish.includes(product.id))
+        } catch {}
+      }
+    }
+
+    window.addEventListener('wishlist-updated', handleSync)
+    return () => {
+      active = false
+      window.removeEventListener('wishlist-updated', handleSync)
+    }
+  }, [session, product.id])
+
+  const toggleWishlist = async () => {
+    if (session.type === 'customer') {
+      try {
+        const res = await toggleWishlistAction(product.id)
+        if (res.success) {
+          setIsWishlisted(!!res.isWishlisted)
+          window.dispatchEvent(new CustomEvent('wishlist-updated'))
+          if (res.isWishlisted) {
+            showToast('Added to Wishlist', `"${product.title}" saved.`, 'success')
+          } else {
+            showToast('Removed from Wishlist', `"${product.title}" removed.`, 'info')
+          }
+        } else {
+          showToast('Error', res.error || 'Could not update wishlist.', 'error')
+        }
+      } catch {
+        showToast('Error', 'Could not update wishlist.', 'error')
+      }
+    } else {
+      try {
+        const localWish = JSON.parse(localStorage.getItem('shreengar_wishlist') || '[]')
+        let updatedWish = []
+        if (isWishlisted) {
+          updatedWish = localWish.filter((id: string) => id !== product.id)
+          setIsWishlisted(false)
+          showToast('Removed from Wishlist', `"${product.title}" removed.`, 'info')
+        } else {
+          updatedWish = [...localWish, product.id]
+          setIsWishlisted(true)
+          showToast('Added to Wishlist', `"${product.title}" saved.`, 'success')
+        }
+        localStorage.setItem('shreengar_wishlist', JSON.stringify(updatedWish))
+        window.dispatchEvent(new CustomEvent('wishlist-updated'))
+      } catch (err) {
+        showToast('Error', 'Could not update wishlist.', 'error')
+      }
+    }
+  }
 
   const handleColorSelect = (colorId: string) => {
     setSelectedColorId(colorId)
@@ -409,8 +492,9 @@ export const ProductGalleryAndActions: React.FC<ProductGalleryAndActionsProps> =
             <Image src="/images/product-placeholder.webp" alt="Image unavailable" fill className="object-cover object-center opacity-80" />
           )}
           <button
-            onClick={() => setIsWishlisted(!isWishlisted)}
-            className="absolute top-4 right-4 p-3 bg-surface-muted/80 backdrop-blur-md rounded-full text-foreground hover:bg-surface transition-all shadow-md z-10"
+            onClick={toggleWishlist}
+            className="absolute top-4 right-4 p-3 bg-surface-muted/80 backdrop-blur-md rounded-full text-foreground hover:bg-surface transition-all shadow-md z-10 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
           >
             <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-rose-700 text-rose-700' : 'text-foreground'}`} />
           </button>

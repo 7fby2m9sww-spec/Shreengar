@@ -59,6 +59,8 @@ export function SupportPortal() {
   const { isMiniCartOpen } = useCart()
 
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const checkOverlay = () => {
@@ -77,8 +79,27 @@ export function SupportPortal() {
     })
 
     observer.observe(document.body, { attributes: true, attributeFilter: ['style'] })
-    return () => observer.disconnect()
+    
+    const handleDrawer = (e: Event) => {
+      const customEvent = e as CustomEvent
+      setDrawerOpen(!!customEvent.detail?.open)
+    }
+    const handleMenu = (e: Event) => {
+      const customEvent = e as CustomEvent
+      setMenuOpen(!!customEvent.detail?.open)
+    }
+    
+    window.addEventListener('account-drawer-toggle', handleDrawer)
+    window.addEventListener('mobile-menu-toggle', handleMenu)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('account-drawer-toggle', handleDrawer)
+      window.removeEventListener('mobile-menu-toggle', handleMenu)
+    }
   }, [])
+
+  const isOverlayActive = isOverlayOpen || drawerOpen || menuOpen
 
   // Screen state: 'list' | 'create' | 'chat'
   const [screen, setScreen] = useState<'list' | 'create' | 'chat'>('list')
@@ -336,7 +357,7 @@ export function SupportPortal() {
   return (
     <div
       className={`fixed z-50 flex flex-col items-end font-sans animate-entrance transition-all duration-300 ${
-        isOverlayOpen ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100'
+        isOverlayActive ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100'
       }`}
       style={{
         right: '16px',
