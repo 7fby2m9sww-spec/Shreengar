@@ -6,6 +6,7 @@ import { getProducts, getCategories, getCollections, getCollectionProducts } fro
 import { getBanners, getBlogs } from '@/services/admin'
 import { getStorefrontHomepageLayout } from '@/services/homepage'
 import { ProductCard } from '@/components/store/ProductCard'
+import { Product } from '@/types/database'
 import { resolveCollectionMedia } from '@/lib/mediaResolvers'
 
 export const revalidate = 0
@@ -163,14 +164,14 @@ export default async function HomePage() {
         {/* Layer 5: Dynamic Admin-Managed Content (z-30, Inner Max-Width Alignment Container) */}
         <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-end sm:items-center px-5 sm:px-6 lg:px-10 pb-14 sm:pb-0">
           <div className="max-w-[450px] space-y-3.5 sm:space-y-4 md:space-y-5">
-            <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 max-w-full">
+            <div className="inline-flex items-center space-x-2 px-2.5 py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 max-w-full">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-              <span className="uppercase tracking-wider sm:tracking-widest text-[10px] sm:text-xs font-bold text-[#D4AF37] truncate">
+              <span className="uppercase tracking-wide sm:tracking-widest text-[10px] sm:text-xs font-bold text-[#D4AF37] truncate">
                 {heroEyebrow}
               </span>
             </div>
 
-            <h1 className="font-serif text-[clamp(2.6rem,11vw,3.5rem)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
+            <h1 className="font-serif text-[clamp(2.5rem,10vw,3.3rem)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
               {formatTitleWithBreaks(heroTitle)}
             </h1>
 
@@ -181,7 +182,7 @@ export default async function HomePage() {
             <div className="pt-1.5 sm:pt-4">
               <Link
                 href={heroCtaLink}
-                className="inline-flex h-12 sm:h-[48px] px-5 sm:px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit"
+                className="inline-flex h-12 sm:h-[48px] px-5 sm:px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all active:scale-[0.97] hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit duration-150"
               >
                 <span>{heroCtaText}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -209,8 +210,8 @@ export default async function HomePage() {
                       </h2>
                     </div>
                     <Link
-                      href="/shop?filter=collections"
-                      className="text-xs sm:text-sm font-semibold text-[#8A3A19] hover:text-[#5C0B26] dark:text-[#D4AF37] dark:hover:text-[#E0B95A] flex items-center space-x-1 transition-colors pr-0 lg:pr-48"
+                      href="/shop"
+                      className="text-xs sm:text-sm font-semibold text-[#8A3A19] hover:text-[#5C0B26] dark:text-[#D4AF37] dark:hover:text-[#E0B95A] flex items-center space-x-1 transition-all active:scale-[0.97] duration-150 pr-0 lg:pr-48"
                     >
                       <span>View All</span>
                       <ArrowRight className="w-4 h-4" />
@@ -234,7 +235,7 @@ export default async function HomePage() {
                           key={col.id}
                           href={`/collection/${col.slug}`}
                           data-featured-collection-card="true"
-                          className="group relative rounded-[6px] overflow-hidden aspect-[4/5] w-full max-w-[260px] bg-rose-950/40 border border-[#5C0B26]/20 dark:border-[#D4AF37]/30 shadow-[0_12px_32px_rgba(76,5,25,0.12)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.28)] hover:shadow-xl transition-all duration-300 flex flex-col justify-end"
+                          className="group relative rounded-[6px] overflow-hidden aspect-[4/5] w-full max-w-[260px] bg-rose-950/40 border border-[#5C0B26]/20 dark:border-[#D4AF37]/30 shadow-[0_12px_32px_rgba(76,5,25,0.12)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.28)] hover:shadow-xl transition-all duration-300 flex flex-col justify-end active:scale-[0.97]"
                         >
                           {/* Image Layer: 100% Fill */}
                           {hasValidImage ? (
@@ -287,7 +288,7 @@ export default async function HomePage() {
                       {section.title || 'Shop by Category'}
                     </h2>
                   </div>
-                  <Link href="/shop" className="text-xs font-semibold text-amber-800 hover:text-foreground flex items-center space-x-1 transition-colors">
+                  <Link href="/shop" className="text-xs font-semibold text-amber-800 hover:text-foreground flex items-center space-x-1 transition-all active:scale-[0.97] duration-150">
                     <span>View All Categories</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
@@ -298,7 +299,7 @@ export default async function HomePage() {
                     <Link
                       key={cat.id}
                       href={`/category/${cat.slug}`}
-                      className="group relative rounded-[4px] overflow-hidden aspect-[4/5] bg-rose-950/10 shadow-sm border border-border-warm hover:shadow-lg transition-all"
+                      className="group relative rounded-[4px] overflow-hidden aspect-[4/5] bg-rose-950/10 shadow-sm border border-border-warm hover:shadow-lg transition-all active:scale-[0.97]"
                     >
                       {cat.image_url && (
                         <Image
@@ -324,11 +325,29 @@ export default async function HomePage() {
           case 'products': {
             const titleLower = (section.title || '').toLowerCase()
             const isNewArrivalsSection = titleLower.includes('new') || titleLower.includes('fresh')
-            const displayProducts = isNewArrivalsSection ? newArrivals : bestSellers
+            
+            // Check if there are products assigned directly via Layout Manager
+            const assignedProducts = section.items && section.items.length > 0
+              ? section.items.map((i: any) => i.resolvedEntity).filter((p: any) => p)
+              : []
+            const displayProducts = assignedProducts.length > 0
+              ? assignedProducts.slice(0, 4)
+              : (isNewArrivalsSection ? newArrivals : bestSellers)
+
+            // Resolve View All route based on section title matching collections
+            const matchingCollection = collections.find(c => 
+              c.name.toLowerCase().includes(titleLower) || 
+              titleLower.includes(c.name.toLowerCase())
+            )
+            const filterUrl = matchingCollection
+              ? `/collection/${matchingCollection.slug}`
+              : (isNewArrivalsSection ? '/shop?filter=new' : '/shop?filter=bestsellers')
+            const viewAllText = matchingCollection
+              ? `View All ${formatCollectionTitle(matchingCollection.name)}`
+              : (isNewArrivalsSection ? 'View All New' : 'View All Bestsellers')
+
             const sectionEyebrowText = isNewArrivalsSection ? 'Fresh Dropped' : 'Most Loved'
             const sectionTitleText = section.title || (isNewArrivalsSection ? 'New Arrivals 2026' : 'Bestselling Classics')
-            const filterUrl = isNewArrivalsSection ? '/shop?filter=new' : '/shop?filter=bestsellers'
-            const viewAllText = isNewArrivalsSection ? 'View All New' : 'View All Bestsellers'
 
             return (
               <section key={section.id} className="mt-10 sm:mt-14 space-y-6">
@@ -337,7 +356,7 @@ export default async function HomePage() {
                     <span className="text-xs uppercase tracking-widest text-amber-700 font-bold">{sectionEyebrowText}</span>
                     <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{sectionTitleText}</h2>
                   </div>
-                  <Link href={filterUrl} className="text-xs font-semibold text-amber-800 hover:text-foreground flex items-center space-x-1 transition-colors">
+                  <Link href={filterUrl} className="text-xs font-semibold text-amber-800 hover:text-foreground flex items-center space-x-1 transition-all active:scale-[0.97] duration-150">
                     <span>{viewAllText}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
@@ -349,7 +368,7 @@ export default async function HomePage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    {displayProducts.map(product => (
+                    {displayProducts.map((product: Product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>

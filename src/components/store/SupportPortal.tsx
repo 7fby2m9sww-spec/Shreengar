@@ -698,7 +698,7 @@ export function SupportPortal() {
       {/* 2. Floating Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-primary-foreground rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-105 cursor-pointer relative w-14 h-14 sm:w-auto sm:h-auto sm:p-4 sm:space-x-2 min-w-[44px] min-h-[44px]"
+        className="bg-brand-primary hover:bg-brand-primary-hover text-brand-primary-foreground rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 duration-150 cursor-pointer relative w-14 h-14 sm:w-auto sm:h-auto sm:p-4 sm:space-x-2 min-w-[44px] min-h-[44px]"
         title="Talk to Support"
         aria-label="Talk to Support"
       >

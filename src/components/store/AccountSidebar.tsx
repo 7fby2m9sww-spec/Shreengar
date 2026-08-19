@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import {
   CircleUserRound,
@@ -60,7 +61,7 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
       <button
         onClick={handleLogout}
         disabled={isLoggingOut}
-        className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive font-medium transition-colors disabled:opacity-50 mt-4 border border-transparent cursor-pointer"
+        className="w-full flex items-center space-x-3 px-3 h-11 rounded-lg text-destructive hover:bg-destructive/10 hover:text-destructive font-medium transition-colors disabled:opacity-50 mt-4 border border-transparent cursor-pointer transition-transform active:scale-98 duration-150"
       >
         <LogOut className="w-[18px] h-[18px]" />
         <span className="flex-1 text-left">{isLoggingOut ? 'Logging Out...' : 'Log Out'}</span>
@@ -71,9 +72,9 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
   return (
     <>
       {/* Mobile Drawer Trigger Bar */}
-      <div className="md:hidden flex items-center justify-between p-3.5 bg-surface rounded-xl border border-border shadow-xs mb-4 w-full">
+      <div className="md:hidden flex items-center justify-between p-3.5 bg-surface rounded-xl border border-border shadow-xs mb-3 w-full">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground font-serif font-bold text-xs flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-[#5C0B26] text-amber-200 font-serif font-bold text-xs flex items-center justify-center shadow-sm border border-gold/15">
             {avatarLetter}
           </div>
           <div>
@@ -83,11 +84,32 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
         
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('open-account-drawer'))}
-          className="p-2 rounded-lg border border-border text-foreground bg-surface-muted/50 hover:bg-surface-muted min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+          className="p-2 rounded-lg border border-border text-foreground bg-surface-muted/50 hover:bg-surface-muted min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer transition-transform active:scale-90 duration-150"
           aria-label="Open Account Directory"
         >
           <Menu className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Mobile breadcrumb / navigation row */}
+      <div className="md:hidden flex items-center space-x-1.5 text-[11px] sm:text-xs text-muted-foreground px-1 mb-4 font-sans select-none">
+        <Link href="/" className="hover:text-gold transition-colors font-medium active:opacity-75 duration-150">
+          Home
+        </Link>
+        <span className="text-muted-foreground/60">&rsaquo;</span>
+        {pathname === '/account' ? (
+          <span className="text-foreground font-semibold">My Account</span>
+        ) : (
+          <>
+            <Link href="/account" className="hover:text-gold transition-colors font-medium active:opacity-75 duration-150">
+              My Account
+            </Link>
+            <span className="text-muted-foreground/60">&rsaquo;</span>
+            <span className="text-foreground font-semibold capitalize">
+              {pathname.replace('/', '')}
+            </span>
+          </>
+        )}
       </div>
 
       {/* Desktop Sidebar */}

@@ -64,7 +64,7 @@ export default async function AccountPage() {
             <Mail className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
               <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1.5">Email Address</p>
-              <p className="font-medium text-foreground text-[16px] sm:text-base leading-tight font-mono break-all overflow-wrap-anywhere">{email}</p>
+              <p className="font-medium text-foreground text-[14px] xs:text-[15px] sm:text-base leading-tight font-mono break-words [overflow-wrap:anywhere]">{email}</p>
             </div>
           </div>
 

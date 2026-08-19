@@ -266,7 +266,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           setImgSrc(getCoverImage(0))
         }}
       >
-        <Link href={`/product/${product.id}`} className="block w-full h-full">
+        <Link href={`/product/${product.id}`} className="block w-full h-full active:opacity-90 active:scale-[0.98] transition-all duration-150">
           <Image
             src={imgSrc}
             alt={productTitle}
@@ -334,7 +334,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           </div>
 
           {/* Product Name */}
-          <Link href={`/product/${product.id}`}>
+          <Link href={`/product/${product.id}`} className="active:opacity-80 transition-opacity duration-150 block">
             <h3 className="font-serif text-xs sm:text-sm font-bold text-foreground line-clamp-1 group-hover:text-gold transition-colors">
               {productTitle}
             </h3>

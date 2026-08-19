@@ -41,8 +41,6 @@ export const Header: React.FC<HeaderProps> = ({
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
-  const [headerSearchQuery, setHeaderSearchQuery] = useState('')
   const [isAccountDrawerOpen, setIsAccountDrawerOpen] = useState(false)
 
   useEffect(() => {
@@ -130,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
         setIsAccountDropdownOpen(false)
         setIsAccountDrawerOpen(false)
         setIsMobileMenuOpen(false)
-        setIsMobileSearchOpen(false)
       }
     }
 
@@ -150,7 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
     const handleOpenDrawer = () => {
       setIsAccountDrawerOpen(true)
       setIsMobileMenuOpen(false)
-      setIsMobileSearchOpen(false)
       setIsAccountDropdownOpen(false)
     }
     window.addEventListener('open-account-drawer', handleOpenDrawer)
@@ -176,7 +172,6 @@ export const Header: React.FC<HeaderProps> = ({
       const next = !prev
       if (next) {
         setIsAccountDrawerOpen(false)
-        setIsMobileSearchOpen(false)
         setIsAccountDropdownOpen(false)
       }
       return next
@@ -188,7 +183,6 @@ export const Header: React.FC<HeaderProps> = ({
       const next = !prev
       if (next) {
         setIsMobileMenuOpen(false)
-        setIsMobileSearchOpen(false)
         setIsAccountDropdownOpen(false)
       }
       return next
@@ -200,7 +194,6 @@ export const Header: React.FC<HeaderProps> = ({
       const next = !prev
       if (next) {
         setIsMobileMenuOpen(false)
-        setIsMobileSearchOpen(false)
         setIsAccountDrawerOpen(false)
       }
       return next
@@ -227,36 +220,25 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Main Navigation Bar */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Mobile Header (Visible only on mobile/tablet < md) */}
-          <div className="flex md:hidden items-center justify-between w-full h-16 relative">
-            {/* Left: Hamburger menu trigger */}
-            <div className="flex items-center shrink-0">
+          <div className="flex md:hidden items-center justify-between w-full h-[70px] relative">
+            {/* Left: Hamburger menu trigger (absolute positioning for perfect centering) */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
               <button
                 onClick={toggleMobileMenu}
                 aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-                className="p-2 text-foreground hover:bg-surface-muted rounded-xl transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
+                className="p-2 text-foreground hover:bg-surface-muted rounded-xl transition-transform active:scale-90 duration-150 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
               >
                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
 
-            {/* Center: Brand Logo in flex-flow to prevent overlap */}
-            <div className="flex-1 flex justify-center min-w-0 px-2">
-              <ShreengarLogo className="w-[125px] xs:w-[135px] max-w-[135px] shrink-0 object-contain" />
+            {/* Center: Brand Logo (absolute viewport centered) */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+              <ShreengarLogo className="w-[130px] xs:w-[140px] max-w-[140px] shrink-0 object-contain transition-transform active:scale-98 duration-150" />
             </div>
 
-            {/* Right: Cart and Account triggers (Wishlist and Search input moved/toggled) */}
-            <div className="flex items-center space-x-0.5 shrink-0">
-              {/* Search Toggle Icon */}
-              <button
-                type="button"
-                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                className="p-2 text-foreground hover:text-gold transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
-                title="Search"
-                aria-label="Toggle mobile search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
+            {/* Right: Cart and Account triggers (absolute positioning, search toggle removed) */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center space-x-1">
               {/* Cart Icon */}
               <button
                 onClick={() => {
@@ -265,7 +247,7 @@ export const Header: React.FC<HeaderProps> = ({
                   setIsAccountDropdownOpen(false)
                   openMiniCart()
                 }}
-                className="relative p-2 text-foreground hover:text-gold transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="relative p-2 text-foreground hover:text-gold transition-transform active:scale-90 duration-150 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title="Shopping Bag"
                 aria-label="Open shopping bag"
               >
@@ -281,7 +263,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={toggleAccountDrawer}
                 aria-label="Open Account Directory"
-                className="flex items-center justify-center p-2 rounded-full hover:bg-surface-muted focus:outline-none transition-all border border-border/40 min-w-[44px] min-h-[44px] cursor-pointer"
+                className="flex items-center justify-center p-2 rounded-full hover:bg-surface-muted focus:outline-none transition-all active:scale-90 duration-150 border border-border/40 min-w-[44px] min-h-[44px] cursor-pointer"
               >
                 {hasSession ? (
                   <div className="w-8 h-8 rounded-full bg-rose-950 text-amber-300 font-bold text-xs flex items-center justify-center border border-gold/20">
@@ -474,54 +456,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile Expandable Search Bar (Dedicated row below header logo/actions, min 44px input) */}
-        {isMobileSearchOpen && (
-          <div className="md:hidden border-b border-border-warm bg-surface px-4 pb-3 pt-1 z-30">
-            <form action="/shop" method="GET" className="relative flex items-center gap-2.5 w-full min-w-0">
-              <div className="relative flex-1 min-w-0">
-                <input
-                  type="text"
-                  name="search"
-                  value={headerSearchQuery}
-                  onChange={(e) => setHeaderSearchQuery(e.target.value)}
-                  placeholder="Search Anarkalis, Sarees..."
-                  autoFocus
-                  className="w-full pl-10 pr-8 h-11 bg-surface border border-border-warm rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold transition-all min-w-0 truncate text-sm"
-                />
-                <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
-                {headerSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setHeaderSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                    aria-label="Clear search text"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMobileSearchOpen(false)}
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0 px-1 min-h-[44px] flex items-center"
-              >
-                Cancel
-              </button>
-            </form>
-          </div>
-        )}
-
         {/* Mobile Storefront Hamburger Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in fade-in duration-200">
-            <form action="/shop" method="GET" className="relative">
+            <form action="/shop" method="GET" className="relative w-full">
               <input
                 type="text"
                 name="search"
-                placeholder="Search Anarkalis, Kurtis..."
-                className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-border rounded-lg text-foreground"
+                placeholder="Search Anarkalis, Kurtis, Sarees..."
+                className="w-full pl-10 pr-4 h-11 bg-surface border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-gold text-sm transition-all"
               />
-              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4.5 h-4.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </form>
 
             <nav className="flex flex-col space-y-3 font-serif text-sm font-semibold text-foreground">
@@ -647,7 +592,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Link
                       href="/account"
                       onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
                     >
                       <CircleUserRound className="w-[20px] h-[20px] text-muted-foreground" />
                       <span>My Account</span>
@@ -656,7 +601,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Link
                       href="/orders"
                       onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
                     >
                       <Package className="w-[20px] h-[20px] text-muted-foreground" />
                       <span>My Orders</span>
@@ -665,7 +610,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Link
                       href="/wishlist"
                       onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
                     >
                       <Heart className="w-[20px] h-[20px] text-muted-foreground" />
                       <span>Wishlist</span>
@@ -674,7 +619,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Link
                       href="/addresses"
                       onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
                     >
                       <MapPin className="w-[20px] h-[20px] text-muted-foreground" />
                       <span>Addresses</span>
@@ -683,7 +628,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Link
                       href="/settings"
                       onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
                     >
                       <Settings className="w-[20px] h-[20px] text-muted-foreground" />
                       <span>Settings</span>

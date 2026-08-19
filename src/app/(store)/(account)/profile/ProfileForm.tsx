@@ -74,7 +74,7 @@ export default function ProfileForm({ initialProfile }: ProfileFormProps) {
         </div>
         <div>
           <h3 className="font-serif font-bold text-lg text-foreground">{fullName || 'Customer User'}</h3>
-          <span className="text-xs text-muted-foreground font-mono block max-w-full break-all [overflow-wrap:anywhere] px-2">{displayEmail}</span>
+          <span className="text-[11px] xs:text-xs text-muted-foreground font-mono block max-w-full break-words [overflow-wrap:anywhere] px-2">{displayEmail}</span>
         </div>
         <div className="pt-3 border-t border-border text-xs text-muted-foreground flex items-center justify-center space-x-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />

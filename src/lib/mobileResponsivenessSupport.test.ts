@@ -14,7 +14,7 @@ describe('Shreengar Mobile Responsiveness & Customer Interaction bugfixes', () =
     assert.ok(fs.existsSync(headerPath), 'Header file must exist')
     const content = fs.readFileSync(headerPath, 'utf8')
     assert.ok(content.includes('flex md:hidden items-center justify-between w-full'), 'Header must define mobile row wrapper')
-    assert.ok(content.includes('ShreengarLogo className="w-[125px]'), 'Header logo is scaled correctly for mobile')
+    assert.ok(content.includes('ShreengarLogo className="w-[130px]'), 'Header logo is scaled correctly for mobile')
   })
 
   test('2. Header mobile row excludes Wishlist button and opens Account drawer', () => {
@@ -23,10 +23,10 @@ describe('Shreengar Mobile Responsiveness & Customer Interaction bugfixes', () =
     assert.ok(content.includes('onClick={toggleAccountDrawer}'), 'Header has Account Directory drawer trigger')
   })
 
-  test('3. Mobile search is rendered as a dedicated second row below the main header', () => {
+  test('3. Mobile search dedicated row is removed and integrated inside hamburger menu', () => {
     const content = fs.readFileSync(headerPath, 'utf8')
-    assert.ok(content.includes('Mobile Expandable Search Bar'), 'Mobile search bar row is defined')
-    assert.ok(content.includes('md:hidden border-b border-border-warm bg-surface'), 'Mobile search bar is visible only on mobile viewports')
+    assert.ok(!content.includes('Mobile Expandable Search Bar'), 'Mobile expandable search bar is removed')
+    assert.ok(content.includes('Search Anarkalis, Kurtis, Sarees...'), 'Search field is inside the storefront hamburger menu')
   })
 
   test('4. Account drawer is promoted outside header and uses correct z-indices', () => {
@@ -68,7 +68,7 @@ describe('Shreengar Mobile Responsiveness & Customer Interaction bugfixes', () =
   test('8. Home Page Hero Banner is responsive and uses mobile-specific vertical linear gradient', () => {
     assert.ok(fs.existsSync(homePagePath), 'Home page file must exist')
     const content = fs.readFileSync(homePagePath, 'utf8')
-    assert.ok(content.includes('clamp(2.6rem,11vw,3.5rem)'), 'Hero banner title uses font-size clamp for responsive scaling')
+    assert.ok(content.includes('clamp(2.5rem,10vw,3.3rem)'), 'Hero banner title uses font-size clamp for responsive scaling')
     assert.ok(content.includes('linear-gradient(180deg'), 'Hero banner uses vertical linear gradient on mobile')
     assert.ok(content.includes('items-end sm:items-center'), 'Hero banner aligns content to bottom on mobile')
   })
