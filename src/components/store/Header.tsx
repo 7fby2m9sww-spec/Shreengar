@@ -42,10 +42,28 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [isAccountDrawerOpen, setIsAccountDrawerOpen] = useState(false)
+  const [shouldFocusSearch, setShouldFocusSearch] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (isMobileMenuOpen && shouldFocusSearch) {
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 80)
+      setShouldFocusSearch(false)
+    }
+  }, [isMobileMenuOpen, shouldFocusSearch])
+
+  const handleSearchIconClick = () => {
+    setShouldFocusSearch(true)
+    setIsMobileMenuOpen(true)
+    setIsAccountDrawerOpen(false)
+    setIsAccountDropdownOpen(false)
+  }
   const [categories, setCategories] = useState<Category[]>([])
   
   const navCategories = categories.filter(
@@ -237,8 +255,19 @@ export const Header: React.FC<HeaderProps> = ({
               <ShreengarLogo className="w-[130px] xs:w-[140px] max-w-[140px] shrink-0 object-contain transition-transform active:scale-98 duration-150" />
             </div>
 
-            {/* Right: Cart and Account triggers (absolute positioning, search toggle removed) */}
+            {/* Right: Cart and Account triggers (absolute positioning) */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center space-x-1">
+              {/* Search Icon */}
+              <button
+                type="button"
+                onClick={handleSearchIconClick}
+                className="p-2 text-foreground hover:text-gold transition-transform active:scale-90 duration-150 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                title="Search"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+
               {/* Cart Icon */}
               <button
                 onClick={() => {
@@ -461,6 +490,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in fade-in duration-200">
             <form action="/shop" method="GET" className="relative w-full">
               <input
+                ref={searchInputRef}
                 type="text"
                 name="search"
                 placeholder="Search Anarkalis, Kurtis, Sarees..."

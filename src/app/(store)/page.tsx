@@ -108,11 +108,11 @@ export default async function HomePage() {
         {/* Layer 1: Base Fallback Surface (z-0) */}
         <div className="absolute inset-0 bg-[#23000C] z-0" />
 
-        {/* Layer 2: Admin Fashion Photograph Layer (z-1, Full-Bleed 100% width/height, model on right) */}
+        {/* Layer 2: Admin Fashion Photograph Layer (z-[1], Full-Bleed 100% width/height, model on right) */}
         {heroDesktopImage && (
           <>
             {/* Desktop Image */}
-            <div className="hidden sm:block absolute inset-0 w-full h-full z-1">
+            <div className="hidden sm:block absolute inset-0 w-full h-full z-[1]">
               <Image
                 src={heroDesktopImage}
                 alt={heroAlt}
@@ -124,7 +124,7 @@ export default async function HomePage() {
               />
             </div>
             {/* Mobile Image */}
-            <div className="block sm:hidden absolute inset-0 w-full h-full z-1">
+            <div className="block sm:hidden absolute inset-0 w-full h-full z-[1]">
               <Image
                 src={heroMobileImage || heroDesktopImage}
                 alt={heroAlt}
