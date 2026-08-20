@@ -58,8 +58,11 @@ export default async function HomePage() {
   const heroBanner = banners.length > 0 ? banners[0] : null
 
   // Strict priority: 1. Admin desktop image, 2. Admin banner image, 3. null (renders branded maroon surface)
-  const heroDesktopImage = heroSettings.desktop_image_url || heroSettings.image_url || heroBanner?.image_url || null
-  const heroMobileImage = heroSettings.mobile_image_url || (heroBanner as any)?.mobile_image_url || heroDesktopImage
+  const desktopUrl = (heroSettings.desktop_image_url || heroSettings.image_url || heroBanner?.image_url || '').trim()
+  const heroDesktopImage = desktopUrl || null
+
+  const mobileUrl = (heroSettings.mobile_image_url || (heroBanner as any)?.mobile_image_url || '').trim()
+  const heroMobileImage = mobileUrl || heroDesktopImage
   const heroAlt = heroSettings.image_alt || (heroBanner as any)?.image_alt || heroBanner?.title || heroSection?.title || 'Shreengar Royal Couture'
   const heroEyebrow = heroSettings.eyebrow || (heroBanner as any)?.eyebrow || 'EXQUISITE HANDCRAFTED INDIAN WEAR'
   const heroTitle = heroSection?.title || heroBanner?.title || 'Celebrate Every Moment in Shreengar'
@@ -72,8 +75,8 @@ export default async function HomePage() {
   const desktopPosY = heroSettings.desktop_position_y || 'center'
   const desktopObjectPosition = `${desktopPosX} ${desktopPosY}`
 
-  const mobilePosX = heroSettings.mobile_position_x || '65%'
-  const mobilePosY = heroSettings.mobile_position_y || 'center'
+  const mobilePosX = mobileUrl ? (heroSettings.mobile_position_x || '78%') : (heroSettings.desktop_position_x || '78%')
+  const mobilePosY = mobileUrl ? (heroSettings.mobile_position_y || 'center') : (heroSettings.desktop_position_y || 'center')
   const mobileObjectPosition = `${mobilePosX} ${mobilePosY}`
 
   // Authoritative collection product & count resolution (using public.product_collections & collection_id query)
@@ -104,15 +107,15 @@ export default async function HomePage() {
   return (
     <div className="w-full pb-12">
       {/* 1. Full-Bleed Homepage Hero Banner — ALWAYS Position 1 (Locked) */}
-      <section className="relative left-1/2 w-screen -translate-x-1/2 isolate overflow-hidden h-[520px] sm:h-[530px] lg:h-[540px] flex items-center bg-[#23000C] -mt-6">
+      <section className="relative left-1/2 w-screen -translate-x-1/2 isolate overflow-hidden h-[440px] xs:h-[465px] sm:h-[530px] lg:h-[540px] flex items-center bg-[#23000C] -mt-6">
         {/* Layer 1: Base Fallback Surface (z-0) */}
         <div className="absolute inset-0 bg-[#23000C] z-0" />
 
-        {/* Layer 2: Admin Fashion Photograph Layer (z-[1], Full-Bleed 100% width/height, model on right) */}
+        {/* Layer 2: Admin Fashion Photograph Layer (z-10, Full-Bleed 100% width/height) */}
         {heroDesktopImage && (
           <>
             {/* Desktop Image */}
-            <div className="hidden sm:block absolute inset-0 w-full h-full z-[1]">
+            <div className="hidden sm:block absolute inset-0 w-full h-full z-10">
               <Image
                 src={heroDesktopImage}
                 alt={heroAlt}
@@ -124,7 +127,7 @@ export default async function HomePage() {
               />
             </div>
             {/* Mobile Image */}
-            <div className="block sm:hidden absolute inset-0 w-full h-full z-[1]">
+            <div className="block sm:hidden absolute inset-0 w-full h-full z-10">
               <Image
                 src={heroMobileImage || heroDesktopImage}
                 alt={heroAlt}
@@ -138,17 +141,17 @@ export default async function HomePage() {
           </>
         )}
 
-        {/* Layer 3: Cinematic Translucent Royal Maroon Gradient Overlay (z-10, responsive gradient) */}
+        {/* Layer 3: Cinematic Translucent Royal Maroon Gradient Overlay (z-20, responsive gradient) */}
         <div
-          className="absolute inset-0 z-10 pointer-events-none hidden sm:block"
+          className="absolute inset-0 z-20 pointer-events-none hidden sm:block"
           style={{
             background: 'linear-gradient(90deg, rgba(35, 0, 12, 0.98) 0%, rgba(66, 0, 23, 0.94) 20%, rgba(76, 5, 25, 0.76) 38%, rgba(76, 5, 25, 0.40) 52%, rgba(76, 5, 25, 0.12) 66%, rgba(76, 5, 25, 0.02) 82%, rgba(76, 5, 25, 0) 100%)',
           }}
         />
         <div
-          className="absolute inset-0 z-10 pointer-events-none block sm:hidden"
+          className="absolute inset-0 z-20 pointer-events-none block sm:hidden"
           style={{
-            background: 'linear-gradient(180deg, rgba(35, 0, 12, 0.25) 0%, rgba(35, 0, 12, 0.75) 45%, rgba(26, 1, 9, 0.98) 95%)',
+            background: 'linear-gradient(180deg, rgba(35, 0, 12, 0.15) 0%, rgba(35, 0, 12, 0.55) 55%, rgba(26, 1, 9, 0.98) 95%)',
           }}
         />
 
@@ -162,8 +165,8 @@ export default async function HomePage() {
         </div>
 
         {/* Layer 5: Dynamic Admin-Managed Content (z-30, Inner Max-Width Alignment Container) */}
-        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-end sm:items-center px-5 sm:px-6 lg:px-10 pb-14 sm:pb-0">
-          <div className="max-w-[450px] space-y-3.5 sm:space-y-4 md:space-y-5">
+        <div className="relative z-30 mx-auto flex h-full w-full max-w-7xl items-end sm:items-center px-5 sm:px-6 lg:px-10 pb-10 sm:pb-0">
+          <div className="max-w-[450px] space-y-3 sm:space-y-4">
             <div className="inline-flex items-center space-x-2 px-2.5 py-1 bg-[#D4AF37]/15 backdrop-blur-md rounded-[2px] border border-[#D4AF37]/40 max-w-full">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
               <span className="uppercase tracking-wide sm:tracking-widest text-[10px] sm:text-xs font-bold text-[#D4AF37] truncate">
@@ -171,18 +174,18 @@ export default async function HomePage() {
               </span>
             </div>
 
-            <h1 className="font-serif text-[clamp(2.5rem,10vw,3.3rem)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
+            <h1 className="font-serif text-[clamp(2.1rem,9vw,2.7rem)] sm:text-5xl lg:text-[58px] font-bold leading-[1.0] lg:leading-[0.99] tracking-normal text-[#FFF4DC] max-w-[450px]">
               {formatTitleWithBreaks(heroTitle)}
             </h1>
 
-            <p className="text-sm sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
+            <p className="text-xs xs:text-sm sm:text-base text-[#F5E6D8] leading-relaxed font-light max-w-[410px]">
               {heroSubtitle}
             </p>
 
             <div className="pt-1.5 sm:pt-4">
               <Link
                 href={heroCtaLink}
-                className="inline-flex h-12 sm:h-[48px] px-5 sm:px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all active:scale-[0.97] hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit duration-150"
+                className="inline-flex h-11 sm:h-[48px] px-5 sm:px-6 items-center justify-center gap-3 rounded-[4px] bg-[#D4AF37] font-serif font-bold text-[#25000D] shadow-md transition-all active:scale-[0.97] hover:bg-[#E0B95A] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFF4DC] w-fit duration-150"
               >
                 <span>{heroCtaText}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -341,10 +344,10 @@ export default async function HomePage() {
             )
             const filterUrl = matchingCollection
               ? `/collection/${matchingCollection.slug}`
-              : (isNewArrivalsSection ? '/shop?filter=new' : '/shop?filter=bestsellers')
+              : (isNewArrivalsSection ? '/shop?sort=newest' : '/shop?featured=1')
             const viewAllText = matchingCollection
               ? `View All ${formatCollectionTitle(matchingCollection.name)}`
-              : (isNewArrivalsSection ? 'View All New' : 'View All Bestsellers')
+              : (isNewArrivalsSection ? 'View All New Arrivals' : 'View All Bestselling Classics')
 
             const sectionEyebrowText = isNewArrivalsSection ? 'Fresh Dropped' : 'Most Loved'
             const sectionTitleText = section.title || (isNewArrivalsSection ? 'New Arrivals 2026' : 'Bestselling Classics')
