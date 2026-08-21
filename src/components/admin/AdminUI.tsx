@@ -44,7 +44,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div className={cn(
-      'bg-white dark:bg-[#211318] p-6 rounded-2xl border border-[#5C0B26]/10 dark:border-[#5D3944] shadow-sm hover:shadow-md hover:border-[#5C0B26]/20 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden',
+      'bg-white dark:bg-[#211318] p-4 sm:p-6 rounded-2xl border border-[#5C0B26]/10 dark:border-[#5D3944] shadow-sm hover:shadow-md hover:border-[#5C0B26]/20 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden',
       className
     )}>
       {/* Top Accent Strip */}
@@ -54,23 +54,23 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         <span className="text-xs font-semibold uppercase tracking-wider text-[#7A6B70]">
           {title}
         </span>
-        <div className={cn('p-3 rounded-xl border transition-transform group-hover:scale-110', accentStyles[accentColor])}>
+        <div className={cn('p-2.5 sm:p-3 rounded-lg sm:rounded-xl border transition-transform group-hover:scale-110', accentStyles[accentColor])}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
 
       <div className="mt-4 space-y-1">
-        <div className="flex items-baseline space-x-2">
-          <h3 className="text-3xl font-serif font-bold text-[#2B1A1F] dark:text-[#FFF4DC] tracking-tight">{value}</h3>
+        <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+          <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#2B1A1F] dark:text-[#FFF4DC] tracking-tight">{value}</h3>
           {badge && (
-            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#FAF8F5] dark:bg-[#211318] text-[#8C3A57] dark:text-[#FFF4DC] border border-[#5C0B26]/10 dark:border-[#5D3944] rounded-full">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#FAF8F5] dark:bg-[#211318] text-[#8C3A57] dark:text-[#FFF4DC] border border-[#5C0B26]/10 dark:border-[#5D3944] rounded-full">
               {badge}
             </span>
           )}
         </div>
 
         {trend !== undefined && (
-          <div className="flex items-center space-x-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
             {isPositive ? (
               <span className="inline-flex items-center text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
                 <TrendingUp className="w-3.5 h-3.5 mr-1" />

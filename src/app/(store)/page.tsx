@@ -81,6 +81,25 @@ export default async function HomePage() {
   const mobilePosY = mobileUrl ? (heroSettings.mobile_position_y || 'center') : (heroSettings.desktop_position_y || 'center')
   const mobileObjectPosition = `${mobilePosX} ${mobilePosY}`
 
+  // Support custom translate scale transforms in new visual editor
+  const desktopScale = heroSettings.desktop_scale || 1
+  const mobileScale = heroSettings.mobile_scale || 1
+  const hasDesktopScale = typeof heroSettings.desktop_scale === 'number'
+  const hasMobileScale = typeof heroSettings.mobile_scale === 'number'
+
+  const desktopTX = hasDesktopScale ? (heroSettings.desktop_position_x || '0%') : '0%'
+  const desktopTY = hasDesktopScale ? (heroSettings.desktop_position_y || '0%') : '0%'
+  const mobileTX = hasMobileScale ? (heroSettings.mobile_position_x || '0%') : '0%'
+  const mobileTY = hasMobileScale ? (heroSettings.mobile_position_y || '0%') : '0%'
+
+  const desktopImageStyle = hasDesktopScale
+    ? { transform: `translate3d(${desktopTX}, ${desktopTY}, 0) scale(${desktopScale})`, objectFit: 'cover' as const, transformOrigin: 'center center' }
+    : { objectPosition: desktopObjectPosition }
+
+  const mobileImageStyle = hasMobileScale
+    ? { transform: `translate3d(${mobileTX}, ${mobileTY}, 0) scale(${mobileScale})`, objectFit: 'cover' as const, transformOrigin: 'center center' }
+    : { objectPosition: mobileObjectPosition }
+
 
   // Authoritative collection product & count resolution (using public.product_collections & collection_id query)
   const featuredCollectionsData = await Promise.all(
@@ -125,7 +144,7 @@ export default async function HomePage() {
                 fill
                 sizes="100vw"
                 className="object-cover transition-opacity duration-700"
-                style={{ objectPosition: desktopObjectPosition }}
+                style={desktopImageStyle}
                 priority
               />
             </div>
@@ -137,7 +156,7 @@ export default async function HomePage() {
                 fill
                 sizes="100vw"
                 className="object-cover transition-opacity duration-700"
-                style={{ objectPosition: mobileObjectPosition }}
+                style={mobileImageStyle}
                 priority
               />
             </div>

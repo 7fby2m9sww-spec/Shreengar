@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -27,7 +27,8 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
-  Info
+  Info,
+  Sparkles
 } from 'lucide-react'
 import {
   getAdminHomepageLayoutAction,
@@ -77,6 +78,224 @@ export default function AdminHomepageManagerPage() {
   const [editDesktopPosY, setEditDesktopPosY] = useState('center')
   const [editMobilePosX, setEditMobilePosX] = useState('center')
   const [editMobilePosY, setEditMobilePosY] = useState('center')
+  const [editPositionPreset, setEditPositionPreset] = useState('right')
+
+  const handlePositionChange = (val: string) => {
+    setEditPositionPreset(val)
+    if (val === 'left') {
+      setEditDesktopPosX('25%')
+      setEditDesktopPosY('center')
+      setEditMobilePosX('left')
+      setEditMobilePosY('center')
+    } else if (val === 'center') {
+      setEditDesktopPosX('center')
+      setEditDesktopPosY('center')
+      setEditMobilePosX('center')
+      setEditMobilePosY('center')
+    } else if (val === 'right') {
+      setEditDesktopPosX('72%')
+      setEditDesktopPosY('center')
+      setEditMobilePosX('right')
+      setEditMobilePosY('center')
+    } else if (val === 'top') {
+      setEditDesktopPosX('center')
+      setEditDesktopPosY('top')
+      setEditMobilePosX('center')
+      setEditMobilePosY('top')
+    } else if (val === 'bottom') {
+      setEditDesktopPosX('center')
+      setEditDesktopPosY('bottom')
+      setEditMobilePosX('center')
+      setEditMobilePosY('bottom')
+    }
+  }
+
+  // Ref pointers to preview containers to measure width/height for drag scale
+  const desktopDragContainerRef = useRef<HTMLDivElement>(null)
+  const mobileDragContainerRef = useRef<HTMLDivElement>(null)
+
+  // Scale states
+  const [editDesktopScale, setEditDesktopScale] = useState(1.0)
+  const [editMobileScale, setEditMobileScale] = useState(1.0)
+
+  // Translates in percent
+  const [editDesktopTX, setEditDesktopTX] = useState(0)
+  const [editDesktopTY, setEditDesktopTY] = useState(0)
+  const [editMobileTX, setEditMobileTX] = useState(0)
+  const [editMobileTY, setEditMobileTY] = useState(0)
+
+  const [previewTab, setPreviewTab] = useState<'desktop' | 'mobile'>('desktop')
+
+  // Helper to parse coordinate string (e.g. "12.5%", "72%", "center") to numeric percent
+  const parseTranslatePercent = (val: string): number => {
+    const clean = (val || '').trim()
+    if (clean.endsWith('%')) {
+      const num = parseFloat(clean)
+      return isNaN(num) ? 0 : num
+    }
+    return 0
+  }
+
+  // Active dragging session reference
+  const dragSessionRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startTX: number;
+    startTY: number;
+    containerWidth: number;
+    containerHeight: number;
+    naturalWidth: number;
+    naturalHeight: number;
+    scale: number;
+  } | null>(null)
+
+  // Unified Pointer Down handler
+  const handlePointerDown = (
+    e: React.PointerEvent<HTMLDivElement>,
+    device: 'desktop' | 'mobile'
+  ) => {
+    // Only handle left mouse click or touch
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    
+    const container = e.currentTarget
+    container.setPointerCapture(e.pointerId)
+
+    const imgEl = container.querySelector('img')
+    if (!imgEl) return
+
+    const rect = container.getBoundingClientRect()
+    const naturalWidth = imgEl.naturalWidth || rect.width
+    const naturalHeight = imgEl.naturalHeight || rect.height
+
+    const scale = device === 'desktop' ? editDesktopScale : editMobileScale
+    const startTX = device === 'desktop' ? editDesktopTX : editMobileTX
+    const startTY = device === 'desktop' ? editDesktopTY : editMobileTY
+
+    dragSessionRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startTX,
+      startTY,
+      containerWidth: rect.width,
+      containerHeight: rect.height,
+      naturalWidth,
+      naturalHeight,
+      scale
+    }
+  }
+
+  // Unified Pointer Move handler with boundary clamping
+  const handlePointerMove = (
+    e: React.PointerEvent<HTMLDivElement>,
+    device: 'desktop' | 'mobile'
+  ) => {
+    const session = dragSessionRef.current
+    if (!session || session.pointerId !== e.pointerId) return
+
+    const deltaX = e.clientX - session.startX
+    const deltaY = e.clientY - session.startY
+
+    // Calculate delta in percentage units relative to container size
+    const deltaTXPercent = (deltaX / session.containerWidth) * 100
+    const deltaTYPercent = (deltaY / session.containerHeight) * 100
+
+    const nextTX = session.startTX + deltaTXPercent
+    const nextTY = session.startTY + deltaTYPercent
+
+    // Calculate maximum bounds to prevent blank space/gaps
+    const F = Math.max(session.containerWidth / session.naturalWidth, session.containerHeight / session.naturalHeight)
+    const W_v = session.naturalWidth * F * session.scale
+    const H_v = session.naturalHeight * F * session.scale
+
+    const dx_max = Math.max(0, (W_v - session.containerWidth) / 2)
+    const dy_max = Math.max(0, (H_v - session.containerHeight) / 2)
+
+    const limitXPercent = (dx_max / session.containerWidth) * 100
+    const limitYPercent = (dy_max / session.containerHeight) * 100
+
+    const clampedTX = Math.max(-limitXPercent, Math.min(limitXPercent, nextTX))
+    const clampedTY = Math.max(-limitYPercent, Math.min(limitYPercent, nextTY))
+
+    if (device === 'desktop') {
+      setEditDesktopTX(clampedTX)
+      setEditDesktopTY(clampedTY)
+      setEditDesktopPosX(`${clampedTX.toFixed(2)}%`)
+      setEditDesktopPosY(`${clampedTY.toFixed(2)}%`)
+    } else {
+      setEditMobileTX(clampedTX)
+      setEditMobileTY(clampedTY)
+      setEditMobilePosX(`${clampedTX.toFixed(2)}%`)
+      setEditMobilePosY(`${clampedTY.toFixed(2)}%`)
+    }
+  }
+
+  // Unified Pointer Up handler
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const session = dragSessionRef.current
+    if (session && session.pointerId === e.pointerId) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+      dragSessionRef.current = null
+    }
+  }
+
+  // Zoom manipulation with automatic clamping
+  const updateZoom = (device: 'desktop' | 'mobile', newScale: number) => {
+    const scale = Math.max(1.0, Math.min(3.0, newScale))
+    if (device === 'desktop') {
+      setEditDesktopScale(scale)
+      clampTranslatesOnZoomChange(device, scale)
+    } else {
+      setEditMobileScale(scale)
+      clampTranslatesOnZoomChange(device, scale)
+    }
+  }
+
+  const adjustZoom = (device: 'desktop' | 'mobile', step: number) => {
+    const current = device === 'desktop' ? editDesktopScale : editMobileScale
+    updateZoom(device, current + step)
+  }
+
+  const clampTranslatesOnZoomChange = (device: 'desktop' | 'mobile', nextScale: number) => {
+    const ref = device === 'desktop' ? desktopDragContainerRef : mobileDragContainerRef
+    if (!ref.current) return
+
+    const imgEl = ref.current.querySelector('img')
+    if (!imgEl) return
+
+    const rect = ref.current.getBoundingClientRect()
+    const naturalWidth = imgEl.naturalWidth || rect.width
+    const naturalHeight = imgEl.naturalHeight || rect.height
+
+    const currentTX = device === 'desktop' ? editDesktopTX : editMobileTX
+    const currentTY = device === 'desktop' ? editDesktopTY : editMobileTY
+
+    const F = Math.max(rect.width / naturalWidth, rect.height / naturalHeight)
+    const W_v = naturalWidth * F * nextScale
+    const H_v = naturalHeight * F * nextScale
+
+    const dx_max = Math.max(0, (W_v - rect.width) / 2)
+    const dy_max = Math.max(0, (H_v - rect.height) / 2)
+
+    const limitXPercent = (dx_max / rect.width) * 100
+    const limitYPercent = (dy_max / rect.height) * 100
+
+    const clampedTX = Math.max(-limitXPercent, Math.min(limitXPercent, currentTX))
+    const clampedTY = Math.max(-limitYPercent, Math.min(limitYPercent, currentTY))
+
+    if (device === 'desktop') {
+      setEditDesktopTX(clampedTX)
+      setEditDesktopTY(clampedTY)
+      setEditDesktopPosX(`${clampedTX.toFixed(2)}%`)
+      setEditDesktopPosY(`${clampedTY.toFixed(2)}%`)
+    } else {
+      setEditMobileTX(clampedTX)
+      setEditMobileTY(clampedTY)
+      setEditMobilePosX(`${clampedTX.toFixed(2)}%`)
+      setEditMobilePosY(`${clampedTY.toFixed(2)}%`)
+    }
+  }
 
   const [isUploadingHeroDesktop, setIsUploadingHeroDesktop] = useState(false)
   const [isUploadingHeroMobile, setIsUploadingHeroMobile] = useState(false)
@@ -192,10 +411,24 @@ export default function AdminHomepageManagerPage() {
     setEditHeroCtaLink(settings.cta_link || '/shop')
 
     // Focal positioning settings
-    setEditDesktopPosX(settings.desktop_position_x || '72%')
-    setEditDesktopPosY(settings.desktop_position_y || 'center')
-    setEditMobilePosX(settings.mobile_position_x || 'center')
-    setEditMobilePosY(settings.mobile_position_y || 'center')
+    const dxVal = settings.desktop_position_x || '0%'
+    const dyVal = settings.desktop_position_y || '0%'
+    const mxVal = settings.mobile_position_x || '0%'
+    const myVal = settings.mobile_position_y || '0%'
+
+    setEditDesktopPosX(dxVal)
+    setEditDesktopPosY(dyVal)
+    setEditMobilePosX(mxVal)
+    setEditMobilePosY(myVal)
+
+    // Set translation numbers
+    setEditDesktopTX(parseTranslatePercent(dxVal))
+    setEditDesktopTY(parseTranslatePercent(dyVal))
+    setEditMobileTX(parseTranslatePercent(mxVal))
+    setEditMobileTY(parseTranslatePercent(myVal))
+
+    setEditDesktopScale(typeof settings.desktop_scale === 'number' ? settings.desktop_scale : 1.0)
+    setEditMobileScale(typeof settings.mobile_scale === 'number' ? settings.mobile_scale : 1.0)
 
     setHeroUploadError(null)
     setHeroUploadSuccess(null)
@@ -312,7 +545,9 @@ export default function AdminHomepageManagerPage() {
         desktop_position_x: editDesktopPosX,
         desktop_position_y: editDesktopPosY,
         mobile_position_x: editMobilePosX,
-        mobile_position_y: editMobilePosY
+        mobile_position_y: editMobilePosY,
+        desktop_scale: editDesktopScale,
+        mobile_scale: editMobileScale
       } : (editingSection.settings || {})
     }
 
@@ -481,55 +716,117 @@ export default function AdminHomepageManagerPage() {
 
             {/* HERO-SPECIFIC IMAGE UPLOADER & METADATA */}
             {editingSection?.section_type === 'hero_banner' && (
-              <div className="p-4 bg-amber-500/10 border border-amber-400/30 rounded-xl space-y-4">
-                <h4 className="font-serif font-bold text-xs text-[#5C0B26]">Hero Banner Photograph & Settings</h4>
-                
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div className="space-y-6">
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-lg text-xs text-blue-900 dark:text-blue-200 flex items-start space-x-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Luxury Campaign Image Guidance:</strong> The Hero displays a wide landscape crop across the storefront. For best results, upload <strong>one continuous landscape photograph</strong> with the subject on the right, rather than a 2×2 collage or contact sheet.
+                    <strong>Luxury Campaign Image Guidance:</strong> Upload separate visual assets for desktop and mobile layouts. Click and drag the images within their preview frames to adjust their alignment.
                   </p>
                 </div>
 
                 {heroUploadError && (
-                  <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 rounded text-xs flex items-center space-x-2">
+                  <div className="p-2.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-800 dark:text-rose-200 rounded text-xs flex items-center space-x-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{heroUploadError}</span>
                   </div>
                 )}
 
                 {heroUploadSuccess && (
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded text-xs flex items-center space-x-2">
+                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded text-xs flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                     <span>{heroUploadSuccess}</span>
                   </div>
                 )}
 
-                {/* Desktop Upload & Realistic Storefront Hero Crop Preview */}
-                <div className="space-y-2">
-                  <label className="block text-[11px] font-bold text-gray-800">Desktop Hero Photograph & Crop Preview</label>
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    {editHeroDesktopImage ? (
-                      <div className="relative w-full sm:w-64 aspect-[16/7] rounded-lg border bg-rose-950 overflow-hidden shrink-0 shadow-md">
-                        <Image
-                          src={editHeroDesktopImage}
-                          alt="Desktop Hero Preview"
-                          fill
-                          className="object-cover"
-                          style={{ objectPosition: `${editDesktopPosX} ${editDesktopPosY}` }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-rose-950/80 via-rose-950/40 to-transparent pointer-events-none flex items-center p-3 text-[9px] text-amber-200 font-serif">
-                          <span>Hero Text Safe Zone</span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Desktop Banner Config */}
+                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-zinc-900/40 rounded-xl border border-gray-100 dark:border-zinc-800">
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-2">
+                      <h4 className="font-serif font-bold text-xs text-[#5C0B26] dark:text-[#FFF4DC]">DESKTOP BANNER</h4>
+                      {editHeroDesktopImage && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditDesktopTX(0)
+                            setEditDesktopTY(0)
+                            setEditDesktopScale(1.0)
+                            setEditDesktopPosX('0%')
+                            setEditDesktopPosY('0%')
+                          }}
+                          className="text-[10px] text-[#5C0B26] dark:text-rose-400 font-bold hover:underline"
+                        >
+                          [ Reset Position ]
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Interactive Drag Container */}
+                      {editHeroDesktopImage ? (
+                        <div
+                          ref={desktopDragContainerRef}
+                          onPointerDown={(e) => handlePointerDown(e, 'desktop')}
+                          onPointerMove={(e) => handlePointerMove(e, 'desktop')}
+                          onPointerUp={handlePointerUp}
+                          onPointerCancel={handlePointerUp}
+                          className="relative w-full aspect-[16/7] rounded-lg border dark:border-zinc-700 bg-rose-950 overflow-hidden shadow-sm cursor-grab active:cursor-grabbing select-none touch-none"
+                          style={{ touchAction: 'none' }}
+                        >
+                          <Image
+                            src={editHeroDesktopImage}
+                            alt="Desktop Position Editor"
+                            fill
+                            draggable={false}
+                            className="object-cover pointer-events-none"
+                            style={{
+                              transform: `translate3d(${editDesktopTX}%, ${editDesktopTY}%, 0) scale(${editDesktopScale})`,
+                              transformOrigin: 'center center'
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/10 hover:bg-transparent pointer-events-none transition-colors" />
+                        </div>
+                      ) : (
+                        <div className="w-full aspect-[16/7] rounded-lg border border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center text-xs text-gray-400 dark:text-zinc-500 bg-white dark:bg-zinc-900/30">
+                          No Desktop Image (Renders Branded Fallback)
+                        </div>
+                      )}
+
+                      <div className="text-[11px] text-gray-500 dark:text-zinc-400 italic text-center sm:text-left">
+                        Drag image inside frame to align (↔ left/right, ↕ up/down)
+                      </div>
+
+                      {/* Zoom Controls */}
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold text-gray-700 dark:text-zinc-300">Zoom</label>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => adjustZoom('desktop', -0.1)}
+                            className="p-1 px-2.5 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded text-xs font-bold"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="range"
+                            min="1.0"
+                            max="3.0"
+                            step="0.05"
+                            value={editDesktopScale}
+                            onChange={(e) => updateZoom('desktop', parseFloat(e.target.value))}
+                            className="w-full h-1 bg-gray-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#5C0B26]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => adjustZoom('desktop', 0.1)}
+                            className="p-1 px-2.5 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded text-xs font-bold"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
-                    ) : (
-                      <div className="w-full sm:w-64 aspect-[16/7] rounded-lg border border-dashed flex items-center justify-center text-[10px] text-gray-400 bg-white shrink-0">
-                        No Desktop Image (Renders Branded Fallback)
-                      </div>
-                    )}
-                    <div className="space-y-2 flex-1 w-full">
-                      <div className="flex items-center space-x-2">
-                        <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#5C0B26] text-white text-xs font-bold rounded">
+
+                      <div className="flex items-center space-x-2 pt-1">
+                        <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#5C0B26] text-white text-xs font-bold rounded hover:bg-[#8C3A57] transition-colors">
                           {isUploadingHeroDesktop ? (
                             <>
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -538,7 +835,7 @@ export default function AdminHomepageManagerPage() {
                           ) : (
                             <>
                               <Upload className="w-3.5 h-3.5" />
-                              <span>{editHeroDesktopImage ? 'Replace Desktop Image' : 'Upload Desktop Image'}</span>
+                              <span>{editHeroDesktopImage ? 'Replace Image' : 'Upload Image'}</span>
                             </>
                           )}
                           <input
@@ -550,72 +847,102 @@ export default function AdminHomepageManagerPage() {
                           />
                         </label>
                         {editHeroDesktopImage && (
-                          <button type="button" onClick={() => setEditHeroDesktopImage('')} className="text-xs text-rose-600 font-bold">
+                          <button type="button" onClick={() => setEditHeroDesktopImage('')} className="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline">
                             Remove Image
                           </button>
                         )}
                       </div>
-                      <Input
-                        value={editHeroDesktopImage}
-                        onChange={(e) => setEditHeroDesktopImage(e.target.value)}
-                        placeholder="Image URL"
-                        className="text-xs"
-                      />
-
-                      {/* Desktop Focal Position Selectors */}
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-700 mb-0.5">Desktop Focal Horizontal (X)</label>
-                          <select
-                            value={editDesktopPosX}
-                            onChange={(e) => setEditDesktopPosX(e.target.value)}
-                            className="w-full p-1.5 text-xs rounded border border-gray-300 bg-white"
-                          >
-                            <option value="72%">Right (72% - Recommended)</option>
-                            <option value="center">Center (50%)</option>
-                            <option value="25%">Left (25%)</option>
-                            <option value="right">Far Right (100%)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-700 mb-0.5">Desktop Focal Vertical (Y)</label>
-                          <select
-                            value={editDesktopPosY}
-                            onChange={(e) => setEditDesktopPosY(e.target.value)}
-                            className="w-full p-1.5 text-xs rounded border border-gray-300 bg-white"
-                          >
-                            <option value="center">Center (Recommended)</option>
-                            <option value="top">Top</option>
-                            <option value="bottom">Bottom</option>
-                          </select>
-                        </div>
-                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Mobile Upload & Preview */}
-                <div className="space-y-2 pt-2 border-t border-amber-300/30">
-                  <label className="block text-[11px] font-bold text-gray-800">Mobile Hero Photograph (Optional Override)</label>
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    {editHeroMobileImage ? (
-                      <div className="relative w-28 aspect-[3/4] rounded-lg border bg-rose-950 overflow-hidden shrink-0 shadow-md">
-                        <Image
-                          src={editHeroMobileImage}
-                          alt="Mobile Hero Preview"
-                          fill
-                          className="object-cover"
-                          style={{ objectPosition: `${editMobilePosX} ${editMobilePosY}` }}
-                        />
+                  {/* Mobile Banner Config */}
+                  <div className="space-y-3 p-4 bg-gray-50 dark:bg-zinc-900/40 rounded-xl border border-gray-100 dark:border-zinc-800">
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-2">
+                      <h4 className="font-serif font-bold text-xs text-[#5C0B26] dark:text-[#FFF4DC]">MOBILE BANNER</h4>
+                      {(editHeroMobileImage || editHeroDesktopImage) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditMobileTX(0)
+                            setEditMobileTY(0)
+                            setEditMobileScale(1.0)
+                            setEditMobilePosX('0%')
+                            setEditMobilePosY('0%')
+                          }}
+                          className="text-[10px] text-[#5C0B26] dark:text-rose-400 font-bold hover:underline"
+                        >
+                          [ Reset Position ]
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Interactive Drag Container */}
+                      {(editHeroMobileImage || editHeroDesktopImage) ? (
+                        <div
+                          ref={mobileDragContainerRef}
+                          onPointerDown={(e) => handlePointerDown(e, 'mobile')}
+                          onPointerMove={(e) => handlePointerMove(e, 'mobile')}
+                          onPointerUp={handlePointerUp}
+                          onPointerCancel={handlePointerUp}
+                          className="relative w-44 aspect-[3/4] rounded-lg border dark:border-zinc-700 bg-rose-950 overflow-hidden shadow-sm cursor-grab active:cursor-grabbing select-none touch-none mx-auto"
+                          style={{ touchAction: 'none' }}
+                        >
+                          <Image
+                            src={editHeroMobileImage || editHeroDesktopImage}
+                            alt="Mobile Position Editor"
+                            fill
+                            draggable={false}
+                            className="object-cover pointer-events-none"
+                            style={{
+                              transform: `translate3d(${editMobileTX}%, ${editMobileTY}%, 0) scale(${editMobileScale})`,
+                              transformOrigin: 'center center'
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/10 hover:bg-transparent pointer-events-none transition-colors" />
+                        </div>
+                      ) : (
+                        <div className="w-44 aspect-[3/4] rounded-lg border border-dashed border-gray-300 dark:border-zinc-700 flex items-center justify-center text-xs text-gray-400 dark:text-zinc-500 bg-white dark:bg-zinc-900/30 mx-auto">
+                          Desktop Fallback
+                        </div>
+                      )}
+
+                      <div className="text-[11px] text-gray-500 dark:text-zinc-400 italic text-center">
+                        Drag image inside frame to align (↔ left/right, ↕ up/down)
                       </div>
-                    ) : (
-                      <div className="w-28 aspect-[3/4] rounded-lg border border-dashed flex items-center justify-center text-[9px] text-gray-400 bg-white shrink-0">
-                        Desktop Fallback
+
+                      {/* Zoom Controls */}
+                      <div className="space-y-1 max-w-xs mx-auto">
+                        <label className="block text-[10px] font-bold text-gray-700 dark:text-zinc-300 text-center sm:text-left">Zoom</label>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => adjustZoom('mobile', -0.1)}
+                            className="p-1 px-2.5 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded text-xs font-bold"
+                          >
+                            −
+                          </button>
+                          <input
+                            type="range"
+                            min="1.0"
+                            max="3.0"
+                            step="0.05"
+                            value={editMobileScale}
+                            onChange={(e) => updateZoom('mobile', parseFloat(e.target.value))}
+                            className="w-full h-1 bg-gray-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#5C0B26]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => adjustZoom('mobile', 0.1)}
+                            className="p-1 px-2.5 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 rounded text-xs font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                    )}
-                    <div className="space-y-2 flex-1 w-full">
-                      <div className="flex items-center space-x-2">
-                        <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-800 text-white text-xs font-bold rounded">
+
+                      <div className="flex items-center justify-center space-x-2 pt-1">
+                        <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#5C0B26] text-white text-xs font-bold rounded hover:bg-[#8C3A57] transition-colors">
                           {isUploadingHeroMobile ? (
                             <>
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -624,7 +951,7 @@ export default function AdminHomepageManagerPage() {
                           ) : (
                             <>
                               <Upload className="w-3.5 h-3.5" />
-                              <span>{editHeroMobileImage ? 'Replace Mobile Override' : 'Upload Mobile Override'}</span>
+                              <span>{editHeroMobileImage ? 'Replace Mobile Image' : 'Upload Mobile Image'}</span>
                             </>
                           )}
                           <input
@@ -636,55 +963,163 @@ export default function AdminHomepageManagerPage() {
                           />
                         </label>
                         {editHeroMobileImage && (
-                          <button type="button" onClick={() => setEditHeroMobileImage('')} className="text-xs text-rose-600 font-bold">
-                            Clear Mobile
+                          <button type="button" onClick={() => setEditHeroMobileImage('')} className="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline">
+                            Remove Image
                           </button>
                         )}
-                      </div>
-                      <Input
-                        value={editHeroMobileImage}
-                        onChange={(e) => setEditHeroMobileImage(e.target.value)}
-                        placeholder="Mobile Image URL"
-                        className="text-xs"
-                      />
-
-                      {/* Mobile Focal Position Selectors */}
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-700 mb-0.5">Mobile Focal X</label>
-                          <select
-                            value={editMobilePosX}
-                            onChange={(e) => setEditMobilePosX(e.target.value)}
-                            className="w-full p-1.5 text-xs rounded border border-gray-300 bg-white"
-                          >
-                            <option value="center">Center (Recommended)</option>
-                            <option value="right">Right</option>
-                            <option value="left">Left</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-700 mb-0.5">Mobile Focal Y</label>
-                          <select
-                            value={editMobilePosY}
-                            onChange={(e) => setEditMobilePosY(e.target.value)}
-                            className="w-full p-1.5 text-xs rounded border border-gray-300 bg-white"
-                          >
-                            <option value="center">Center (Recommended)</option>
-                            <option value="top">Top</option>
-                            <option value="bottom">Bottom</option>
-                          </select>
-                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Input label="Eyebrow Badge" value={editHeroEyebrow} onChange={(e) => setEditHeroEyebrow(e.target.value)} placeholder="EXQUISITE HANDCRAFTED INDIAN WEAR" />
-                  <Input label="Image Alt Text" value={editHeroImageAlt} onChange={(e) => setEditHeroImageAlt(e.target.value)} placeholder="Hero photograph description" />
-                  <Input label="CTA Label" value={editHeroCtaText} onChange={(e) => setEditHeroCtaText(e.target.value)} placeholder="Explore Collection" />
-                  <Input label="CTA Link" value={editHeroCtaLink} onChange={(e) => setEditHeroCtaLink(e.target.value)} placeholder="/shop" />
+                {/* Previews Tabs */}
+                <div className="space-y-3 p-4 bg-gray-50 dark:bg-zinc-900/40 rounded-xl border border-gray-100 dark:border-zinc-800">
+                  <div className="flex items-center justify-between border-b border-gray-200 dark:border-zinc-800 pb-2">
+                    <h4 className="font-serif font-bold text-xs text-[#5C0B26] dark:text-[#FFF4DC]">PREVIEW</h4>
+                    <div className="flex space-x-1">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTab('desktop')}
+                        className={`px-3 py-1 text-xs font-bold rounded transition-colors ${
+                          previewTab === 'desktop'
+                            ? 'bg-[#5C0B26] text-white'
+                            : 'bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        Desktop Preview
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewTab('mobile')}
+                        className={`px-3 py-1 text-xs font-bold rounded transition-colors ${
+                          previewTab === 'mobile'
+                            ? 'bg-[#5C0B26] text-white'
+                            : 'bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        Mobile Preview
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-center">
+                    {previewTab === 'desktop' ? (
+                      /* Real Desktop Overlaid Preview Mockup */
+                      <div className="relative w-full max-w-3xl aspect-[16/7] rounded-xl overflow-hidden bg-rose-950 border shadow-md flex items-center">
+                        {editHeroDesktopImage ? (
+                          <Image
+                            src={editHeroDesktopImage}
+                            alt="Desktop Mockup"
+                            fill
+                            className="object-cover"
+                            style={{
+                              transform: `translate3d(${editDesktopTX}%, ${editDesktopTY}%, 0) scale(${editDesktopScale})`,
+                              transformOrigin: 'center center'
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-[#23000C]" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-r from-rose-950/80 via-rose-950/40 to-transparent pointer-events-none" />
+                        <div className="relative z-10 px-6 max-w-sm space-y-2 pointer-events-none">
+                          {editHeroEyebrow && (
+                            <span className="text-[9px] tracking-widest font-bold text-amber-300 uppercase block">{editHeroEyebrow}</span>
+                          )}
+                          <h2 className="text-sm font-serif font-bold text-[#FFF4DC] leading-snug">
+                            {editTitle || 'Celebrate Every Moment in Shreengar'}
+                          </h2>
+                          <p className="text-[9px] text-zinc-300 line-clamp-2">
+                            {editSubtitle || 'Discover timeless Anarkalis, silk sarees, and handcrafted ethnic wear.'}
+                          </p>
+                          <div className="pt-1">
+                            <span className="inline-block px-3 py-1 bg-amber-400 text-rose-950 text-[9px] font-bold uppercase rounded-sm">
+                              {editHeroCtaText || 'Explore'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Real Mobile Overlaid Preview Mockup */
+                      <div className="relative w-64 aspect-[3/4] rounded-2xl overflow-hidden bg-rose-950 border-4 border-gray-800 shadow-lg flex items-end pb-8">
+                        {editHeroMobileImage || editHeroDesktopImage ? (
+                          <Image
+                            src={editHeroMobileImage || editHeroDesktopImage}
+                            alt="Mobile Mockup"
+                            fill
+                            className="object-cover"
+                            style={{
+                              transform: `translate3d(${editMobileTX}%, ${editMobileTY}%, 0) scale(${editMobileScale})`,
+                              transformOrigin: 'center center'
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-[#23000C]" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-rose-950/90 via-rose-950/30 to-transparent pointer-events-none" />
+                        <div className="relative z-10 px-4 w-full text-center space-y-1.5 pointer-events-none">
+                          {editHeroEyebrow && (
+                            <span className="text-[8px] tracking-wider font-bold text-amber-300 uppercase block">{editHeroEyebrow}</span>
+                          )}
+                          <h2 className="text-xs font-serif font-bold text-[#FFF4DC] leading-tight">
+                            {editTitle || 'Celebrate Every Moment in Shreengar'}
+                          </h2>
+                          <div className="pt-1 flex justify-center">
+                            <span className="inline-block px-2.5 py-1 bg-amber-400 text-rose-950 text-[8px] font-bold uppercase rounded-sm">
+                              {editHeroCtaText || 'Explore'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* Advanced Settings section */}
+                <details className="border border-gray-200 dark:border-zinc-800 rounded-lg p-3 bg-gray-50 dark:bg-zinc-900/30 cursor-pointer">
+                  <summary className="text-xs font-semibold text-gray-700 dark:text-zinc-300 select-none">Advanced Settings</summary>
+                  <div className="pt-4 space-y-4 cursor-default" onClick={e => e.stopPropagation()}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Input
+                        label="Desktop Image URL"
+                        value={editHeroDesktopImage}
+                        onChange={(e) => setEditHeroDesktopImage(e.target.value)}
+                        placeholder="Image URL"
+                        className="text-xs"
+                      />
+                      <Input
+                        label="Mobile Image URL"
+                        value={editHeroMobileImage}
+                        onChange={(e) => setEditHeroMobileImage(e.target.value)}
+                        placeholder="Mobile Override URL"
+                        className="text-xs"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-1 text-[11px] text-gray-700 dark:text-zinc-300">
+                      <div>
+                        <label className="block font-bold mb-0.5">Desktop X</label>
+                        <Input value={editDesktopPosX} onChange={e => setEditDesktopPosX(e.target.value)} className="text-xs" />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-0.5">Desktop Y</label>
+                        <Input value={editDesktopPosY} onChange={e => setEditDesktopPosY(e.target.value)} className="text-xs" />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-0.5">Mobile X</label>
+                        <Input value={editMobilePosX} onChange={e => setEditMobilePosX(e.target.value)} className="text-xs" />
+                      </div>
+                      <div>
+                        <label className="block font-bold mb-0.5">Mobile Y</label>
+                        <Input value={editMobilePosY} onChange={e => setEditMobilePosY(e.target.value)} className="text-xs" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <Input label="Eyebrow Badge" value={editHeroEyebrow} onChange={(e) => setEditHeroEyebrow(e.target.value)} placeholder="EXQUISITE HANDCRAFTED INDIAN WEAR" />
+                      <Input label="Image Alt Text" value={editHeroImageAlt} onChange={(e) => setEditHeroImageAlt(e.target.value)} placeholder="Hero photograph description" />
+                      <Input label="CTA Label" value={editHeroCtaText} onChange={(e) => setEditHeroCtaText(e.target.value)} placeholder="Explore Collection" />
+                      <Input label="CTA Link" value={editHeroCtaLink} onChange={(e) => setEditHeroCtaLink(e.target.value)} placeholder="/shop" />
+                    </div>
+                  </div>
+                </details>
               </div>
             )}
 

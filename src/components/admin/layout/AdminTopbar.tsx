@@ -246,7 +246,7 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileDrawer }) 
           </button>
 
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#211318] rounded-2xl border border-[#5C0B26]/15 dark:border-[#5D3944] shadow-2xl z-50 animate-in fade-in zoom-in-95 overflow-hidden">
+            <div className="absolute right-[-8px] sm:right-0 mt-2 w-[calc(100vw-24px)] sm:w-96 bg-white dark:bg-[#211318] rounded-2xl border border-[#5C0B26]/15 dark:border-[#5D3944] shadow-2xl z-50 animate-in fade-in zoom-in-95 overflow-hidden">
               {/* Popover Header */}
               <div className="p-3.5 bg-[#FAF8F5] dark:bg-[#1A0E13] border-b border-[#5C0B26]/10 dark:border-[#5D3944] flex items-center justify-between">
                 <div className="flex items-center space-x-2">
