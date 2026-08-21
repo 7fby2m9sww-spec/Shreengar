@@ -50,7 +50,7 @@ export const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({
 
         {/* Actions Cluster */}
         {(actions || secondaryActions) && (
-          <div className="flex items-center space-x-3 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
             {secondaryActions}
             {actions}
           </div>

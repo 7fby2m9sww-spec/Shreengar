@@ -62,7 +62,7 @@ export async function requireAdmin(): Promise<{
 }> {
   const appSession = await resolveApplicationSession()
   if (appSession.type !== 'admin') {
-    redirect('/admin/login')
+    redirect('/auth/login')
   }
 
   return {
@@ -165,8 +165,7 @@ export async function adminLoginAction(formData: FormData) {
       return { error: otpRes.error }
     }
 
-    // 5. Redirect to administrative OTP verification page
-    redirect(`/admin/verify-otp?email=${encodeURIComponent(normalizedEmail)}`)
+    redirect(`/auth/login`)
   } catch (err: unknown) {
     console.error('[DEBUG-ADMIN-LOGIN] Exception caught:', err);
     if (err && typeof err === 'object' && 'digest' in err && (err as { digest: string }).digest.startsWith('NEXT_REDIRECT')) {

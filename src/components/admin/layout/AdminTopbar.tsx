@@ -34,6 +34,20 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileDrawer }) 
   const [notifications, setNotifications] = useState<AdminNotificationItem[]>([])
   const [readIds, setReadIds] = useState<Set<string>>(new Set())
   const [filterTab, setFilterTab] = useState<'all' | 'unread'>('all')
+  const [searchPlaceholder, setSearchPlaceholder] = useState('Search...')
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setSearchPlaceholder('Search...')
+      } else {
+        setSearchPlaceholder('Search products, orders, customers... (Ctrl + K)')
+      }
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Load Admin User Status
   useEffect(() => {
@@ -184,7 +198,7 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileDrawer }) 
   }
 
   return (
-    <header className="h-16 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#5C0B26]/10 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs dark:bg-[#140C10] dark:border-[#5D3944]">
+    <header className="h-16 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#5C0B26]/10 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs dark:bg-[#140C10] dark:border-[#5D3944]">
       {/* Left: Mobile Menu Trigger & Quick Search */}
       <div className="flex items-center space-x-3 flex-1 max-w-md">
         <button
@@ -196,18 +210,18 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileDrawer }) 
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="relative w-full">
+        <div className="relative w-full max-w-[110px] min-[360px]:max-w-[150px] xs:max-w-xs sm:max-w-md">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A6B70]" />
           <input
             type="text"
-            placeholder="Search products, orders, customers... (Ctrl + K)"
+            placeholder={searchPlaceholder}
             className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-[#5C0B26]/15 bg-white dark:bg-[#211318] text-[#2B1A1F] dark:text-[#D7C0B5] placeholder-[#7A6B70]/60 focus:outline-none focus:ring-2 focus:ring-[#5C0B26] transition-all shadow-2xs"
           />
         </div>
       </div>
 
       {/* Right: Notifications & Admin Profile */}
-      <div className="flex items-center space-x-3 sm:space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
 
         {/* Notifications Dropdown */}
         <div className="relative" ref={dropdownRef}>
@@ -354,7 +368,7 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileDrawer }) 
         </div>
 
         {/* Admin User Profile */}
-        <div className="flex items-center space-x-3 pl-3 border-l border-[#5C0B26]/15">
+        <div className="flex items-center space-x-2 sm:space-x-3 pl-2 sm:pl-3 border-l border-[#5C0B26]/15">
           {currentAdmin?.avatar_url ? (
             <Image
               src={currentAdmin.avatar_url}

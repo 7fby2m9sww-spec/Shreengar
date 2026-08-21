@@ -110,7 +110,7 @@ export default function AdminSupportPage() {
       if (session.type === 'admin') {
         setCurrentAdmin(session)
       } else {
-        router.push('/admin/login')
+        router.push('/auth/login')
       }
     })
 

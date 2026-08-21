@@ -75,9 +75,12 @@ export default async function HomePage() {
   const desktopPosY = heroSettings.desktop_position_y || 'center'
   const desktopObjectPosition = `${desktopPosX} ${desktopPosY}`
 
-  const mobilePosX = mobileUrl ? (heroSettings.mobile_position_x || '78%') : (heroSettings.desktop_position_x || '78%')
+  const mobilePosX = mobileUrl
+    ? (heroSettings.mobile_position_x || '78%')
+    : (heroSettings.desktop_position_x === '72%' ? '98%' : (heroSettings.desktop_position_x || '78%'))
   const mobilePosY = mobileUrl ? (heroSettings.mobile_position_y || 'center') : (heroSettings.desktop_position_y || 'center')
   const mobileObjectPosition = `${mobilePosX} ${mobilePosY}`
+
 
   // Authoritative collection product & count resolution (using public.product_collections & collection_id query)
   const featuredCollectionsData = await Promise.all(

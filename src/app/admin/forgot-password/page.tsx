@@ -62,7 +62,7 @@ export default function AdminForgotPasswordPage() {
             <p className="leading-relaxed">{successMsg}</p>
             <div className="pt-2">
               <Link
-                href="/admin/login"
+                href="/auth/login"
                 className="text-rose-950 hover:text-rose-900 font-bold underline inline-flex items-center space-x-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -109,7 +109,7 @@ export default function AdminForgotPasswordPage() {
 
             <div className="text-center pt-2">
               <Link
-                href="/admin/login"
+                href="/auth/login"
                 className="text-xs text-rose-950/70 hover:text-rose-950 font-bold underline inline-flex items-center space-x-1"
               >
                 <ArrowLeft className="w-3 h-3" />

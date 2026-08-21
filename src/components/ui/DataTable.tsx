@@ -50,7 +50,7 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div className="w-full bg-white dark:bg-[#211318] rounded-xl shadow-sm border border-rose-900/10 dark:border-[#5D3944] overflow-hidden">
       {searchKey && (
-        <div className="p-4 border-b border-rose-900/10 dark:border-[#5D3944]/40 bg-amber-50/40 dark:bg-[#2A171E] flex items-center justify-between">
+        <div className="p-4 border-b border-rose-900/10 dark:border-[#5D3944]/40 bg-amber-50/40 dark:bg-[#2A171E] flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div className="relative w-full max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-rose-950/40 dark:text-[#9D858D]" />
             <input

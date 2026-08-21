@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --conditions=react-server --experimental-strip-types src/lib/shipping/storefrontShipping.test.ts"
+    "test": "node --conditions=react-server --experimental-strip-types src/lib/heroBannerPipeline.test.ts && node --conditions=react-server --experimental-strip-types src/lib/mobileResponsivenessSupport.test.ts && node --conditions=react-server --experimental-strip-types src/lib/adminResponsiveness.test.ts && node --experimental-strip-types src/lib/auth/accountNavigation.test.ts && node --experimental-strip-types src/lib/wishlist.test.ts && node --experimental-strip-types src/lib/unified_auth_flow.test.ts && node --conditions=react-server --experimental-strip-types src/lib/shipping/storefrontShipping.test.ts"
   },
   "dependencies": {
     "@react-email/render": "^2.1.0",

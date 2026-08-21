@@ -41,27 +41,21 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (path === '/admin/login' || path === '/admin/verify-otp') {
-    if (user) {
-      const isAdmin = await isUserActiveAdmin(user.id, supabase)
-      if (isAdmin) {
-        url.pathname = '/admin/dashboard'
-        return NextResponse.redirect(url)
-      }
-    }
-    return supabaseResponse
+    url.pathname = '/auth/login'
+    return NextResponse.redirect(url)
   }
 
-  // 1. Strictly Protect Admin Portal routes (Redirect unauthenticated/unauthorized users to /admin/login)
+  // 1. Strictly Protect Admin Portal routes (Redirect unauthenticated/unauthorized users to /auth/login)
   if (path.startsWith('/admin')) {
     if (!user) {
-      url.pathname = '/admin/login'
+      url.pathname = '/auth/login'
       url.searchParams.set('next', path)
       return NextResponse.redirect(url)
     }
 
     const isAdmin = await isUserActiveAdmin(user.id, supabase)
     if (!isAdmin) {
-      url.pathname = '/admin/login'
+      url.pathname = '/auth/login'
       url.searchParams.set('next', path)
       return NextResponse.redirect(url)
     }

@@ -8,6 +8,7 @@ export interface Profile {
   gender: string | null;
   phone: string | null;
   avatar_url?: string | null;
+  role: 'customer' | 'admin';
 }
 
 export type CustomerSession =
@@ -37,10 +38,28 @@ export async function getSession(): Promise<CustomerSession> {
         gender: appSession.gender,
         phone: appSession.phone,
         avatar_url: appSession.avatar_url,
+        role: 'customer',
       },
       token: {
         sub: appSession.customerId,
         type: 'customer',
+      },
+    };
+  } else if (appSession.type === 'admin') {
+    return {
+      authenticated: true,
+      profile: {
+        id: appSession.adminUserId,
+        email: appSession.email,
+        full_name: appSession.fullName,
+        gender: null,
+        phone: null,
+        avatar_url: null,
+        role: 'admin',
+      },
+      token: {
+        sub: appSession.adminUserId,
+        type: 'admin' as any,
       },
     };
   }

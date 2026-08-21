@@ -16,11 +16,25 @@ export async function checkWishlistStatusAction(productId: string): Promise<bool
 
     const customerId = session.profile.id
     const supabase = createAdminClient()
+
+    // Resolve all variants of the product
+    const { data: variants, error: varError } = await supabase
+      .from('product_variants')
+      .select('id')
+      .eq('product_id', productId)
+
+    if (varError || !variants || variants.length === 0) {
+      return false
+    }
+
+    const variantIds = variants.map(v => v.id)
+
     const { data, error } = await supabase
       .from('wishlist')
       .select('id')
       .eq('user_id', customerId)
-      .eq('product_id', productId)
+      .in('variant_id', variantIds)
+      .limit(1)
       .maybeSingle()
 
     if (error) {
@@ -47,12 +61,25 @@ export async function toggleWishlistAction(
     const customerId = session.profile.id
     const supabase = createAdminClient()
 
-    // Check if it already exists
+    // Resolve all variants of the product
+    const { data: variants, error: varError } = await supabase
+      .from('product_variants')
+      .select('id')
+      .eq('product_id', productId)
+
+    if (varError || !variants || variants.length === 0) {
+      return { success: false, error: 'Product has no variants' }
+    }
+
+    const variantIds = variants.map(v => v.id)
+
+    // Check if any variant is already wishlisted
     const { data: existing, error: checkError } = await supabase
       .from('wishlist')
       .select('id')
       .eq('user_id', customerId)
-      .eq('product_id', productId)
+      .in('variant_id', variantIds)
+      .limit(1)
       .maybeSingle()
 
     if (checkError) {
@@ -60,12 +87,12 @@ export async function toggleWishlistAction(
     }
 
     if (existing) {
-      // Remove it
+      // Remove all variants of this product from wishlist
       const { error: deleteError } = await supabase
         .from('wishlist')
         .delete()
         .eq('user_id', customerId)
-        .eq('product_id', productId)
+        .in('variant_id', variantIds)
 
       if (deleteError) {
         return { success: false, error: 'Could not remove from wishlist' }
@@ -74,12 +101,12 @@ export async function toggleWishlistAction(
       revalidatePath('/wishlist')
       return { success: true, isWishlisted: false }
     } else {
-      // Add it
+      // Add the first variant to wishlist
       const { error: insertError } = await supabase
         .from('wishlist')
         .insert({
           user_id: customerId,
-          product_id: productId
+          variant_id: variants[0].id
         })
 
       if (insertError) {

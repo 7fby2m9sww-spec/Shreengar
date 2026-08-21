@@ -12,40 +12,38 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
-  Menu
+  Menu,
+  Sun,
+  Moon
 } from 'lucide-react'
+import { useTheme } from '@teispace/next-themes'
 import { useAuth } from '@/context/AuthContext'
 import { Profile } from '@/lib/auth/getSession'
 import { AccountNavItem } from '@/components/store/account/AccountNavItem'
+import { getAccountNavigation } from '@/lib/auth/accountNavigation'
 
 interface AccountSidebarProps {
   profile: Profile
 }
 
-type AccountNavigationItem = {
-  href: string
-  label: string
-  icon: LucideIcon
-}
-
-const accountNavigation: AccountNavigationItem[] = [
-  { href: '/account', label: 'My Account', icon: CircleUserRound },
-  { href: '/orders', label: 'Orders', icon: Package },
-  { href: '/wishlist', label: 'Wishlist', icon: Heart },
-  { href: '/addresses', label: 'Addresses', icon: MapPin },
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
-
 export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
   const pathname = usePathname()
   const { logout, isLoading: isLoggingOut } = useAuth()
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+ 
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  const fullName = profile.full_name || 'Customer'
+  const fullName = profile.full_name || (profile.role === 'admin' ? 'Admin' : 'Customer')
   const avatarLetter = fullName[0].toUpperCase()
 
   const handleLogout = async () => {
     await logout()
   }
+
+  const accountNavigation = getAccountNavigation(profile.role)
 
   const navLinks = (
     <div className="space-y-1.5 font-sans">
@@ -58,6 +56,28 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
         />
       ))}
 
+      {mounted && (
+        <div className="flex items-center justify-between px-3 py-2 bg-surface-muted/50 rounded-xl border border-border-warm/50 my-3 font-sans">
+          <span className="text-xs font-bold text-foreground uppercase tracking-wider select-none">Appearance</span>
+          <div className="flex items-center space-x-1 bg-surface-muted rounded-full p-0.5 border border-border/40">
+            <button
+              onClick={() => setTheme('light')}
+              className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'light' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              aria-label="Light mode"
+            >
+              <Sun className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'dark' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              aria-label="Dark mode"
+            >
+              <Moon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+ 
       <button
         onClick={handleLogout}
         disabled={isLoggingOut}
@@ -123,7 +143,7 @@ export const AccountSidebar: React.FC<AccountSidebarProps> = ({ profile }) => {
             <h3 className="font-serif font-semibold text-base text-foreground leading-tight line-clamp-1">{fullName}</h3>
             <div className="flex items-center space-x-1.5 text-[11px] text-success font-medium mt-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Verified Customer</span>
+              <span>{profile.role === 'admin' ? 'Verified Admin' : 'Verified Customer'}</span>
             </div>
           </div>
         </div>

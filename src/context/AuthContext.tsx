@@ -64,10 +64,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; initialSession:
     full_name: session.fullName,
     gender: session.gender,
     phone: session.phone,
-    avatar_url: session.avatar_url
+    avatar_url: session.avatar_url,
+    role: (session as any).role || 'customer'
+  } : session.type === 'admin' ? {
+    id: session.adminUserId,
+    email: session.email,
+    full_name: session.fullName,
+    gender: null,
+    phone: null,
+    avatar_url: null,
+    role: 'admin'
   } : null;
 
-  const isAuthenticated = session.type === 'customer'
+  const isAuthenticated = session.type === 'customer' || session.type === 'admin'
 
   return (
     <AuthContext.Provider value={{ session, profile, isAuthenticated, isLoading, refreshSession, logout }}>

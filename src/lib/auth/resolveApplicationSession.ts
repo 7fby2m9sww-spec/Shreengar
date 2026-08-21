@@ -15,6 +15,7 @@ export type ApplicationSession =
       gender: string | null;
       phone: string | null;
       avatar_url: string | null;
+      role: string;
     }
   | {
       type: 'admin';
@@ -58,7 +59,7 @@ export async function resolveApplicationSession(): Promise<ApplicationSession> {
         const adminSupabase = createAdminClient();
         const { data: profile, error: dbError } = await adminSupabase
           .from('profiles')
-          .select('id, email, full_name, gender, phone, avatar_url')
+          .select('id, email, full_name, gender, phone, avatar_url, role')
           .eq('id', verifyResult.payload.sub)
           .maybeSingle();
 
@@ -71,6 +72,7 @@ export async function resolveApplicationSession(): Promise<ApplicationSession> {
             gender: profile.gender || null,
             phone: profile.phone || null,
             avatar_url: profile.avatar_url || null,
+            role: profile.role || 'customer',
           };
         }
       }
@@ -92,7 +94,7 @@ export async function resolveApplicationSession(): Promise<ApplicationSession> {
       if (!adminErr && adminRecord) {
         const adminAny = adminRecord as any;
         const roleCode = Array.isArray(adminAny.role) ? adminAny.role[0]?.code : adminAny.role?.code;
-        if (roleCode === 'super_admin') {
+        if (roleCode) {
           return {
             type: 'admin',
             adminUserId: adminRecord.id,

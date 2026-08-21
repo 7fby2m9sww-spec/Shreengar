@@ -1161,10 +1161,10 @@ export async function deleteProduct(id: string): Promise<{ success: boolean; isA
     if (variantIds.length > 0) {
       await supabase.from('inventory').delete().in('variant_id', variantIds)
       await supabase.from('cart_items').delete().in('variant_id', variantIds)
+      await supabase.from('wishlist').delete().in('variant_id', variantIds)
     }
 
     await supabase.from('cart_items').delete().eq('product_id', id)
-    await supabase.from('wishlist').delete().eq('product_id', id)
     await supabase.from('reviews').delete().eq('product_id', id)
     await supabase.from('product_images').delete().eq('product_id', id)
     await supabase.from('product_variants').delete().eq('product_id', id)

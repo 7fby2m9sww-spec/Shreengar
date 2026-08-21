@@ -164,7 +164,7 @@ export default function AdminResetPasswordPage() {
             <p className="leading-relaxed font-semibold">{successMsg}</p>
             <div className="pt-2">
               <Link
-                href="/admin/login"
+                href="/auth/login"
                 className="px-4 py-2 bg-rose-950 hover:bg-rose-900 text-amber-100 font-serif font-bold text-xs rounded-xl shadow-lg transition-all inline-block"
               >
                 Go to Admin Login
@@ -225,7 +225,7 @@ export default function AdminResetPasswordPage() {
 
             <div className="text-center pt-2">
               <Link
-                href="/admin/login"
+                href="/auth/login"
                 className="text-xs text-rose-950/70 hover:text-rose-950 font-bold underline inline-flex items-center space-x-1"
               >
                 <ArrowLeft className="w-3 h-3" />

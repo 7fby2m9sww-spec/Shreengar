@@ -1299,7 +1299,7 @@ export function ProductForm({
 
                 <div className="md:col-span-6 bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
                   <h5 className="font-serif font-bold text-xs text-[#2B1A1F]">Secondary Specs (Optional)</h5>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input label="Material" value={material} onChange={e => { setMaterial(e.target.value); setHasUnsavedChanges(true) }} placeholder="e.g. Pure Silk" />
                     <Input label="Fit Type" value={fit} onChange={e => { setFit(e.target.value); setHasUnsavedChanges(true) }} placeholder="e.g. Regular Fit" />
                     <Input label="Sleeve Type" value={sleeveType} onChange={e => { setSleeveType(e.target.value); setHasUnsavedChanges(true) }} placeholder="e.g. 3/4 Sleeves" />
@@ -1384,7 +1384,7 @@ export function ProductForm({
                     )}
                   </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="font-semibold text-xs text-gray-800 block">Primary Colour</label>
@@ -1828,7 +1828,7 @@ export function ProductForm({
                     </div>
                     <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">Free shipping is currently enabled store-wide.</p>
 
-                    <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                       <Input
                         label="Min Delivery Days (e.g. 3)"
                         type="number"

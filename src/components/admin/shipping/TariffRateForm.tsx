@@ -163,7 +163,7 @@ export default function TariffRateForm({
             <Info className="w-4 h-4 text-yellow-500" />
             Weight Slab Constraints (Grams)
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs text-zinc-500 mb-1">Min Weight (g)</label>
               <Input

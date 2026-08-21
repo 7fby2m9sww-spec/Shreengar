@@ -23,6 +23,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { MiniCart } from '@/components/store/MiniCart'
 import { CouponAnnouncementBar } from '@/components/store/CouponAnnouncementBar'
 import { ShreengarLogo } from '@/components/store/ShreengarLogo'
+import { getAccountNavigation } from '@/lib/auth/accountNavigation'
 
 interface HeaderProps {
   cartCount?: number
@@ -36,34 +37,16 @@ export const Header: React.FC<HeaderProps> = ({
   const router = useRouter()
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false)
   const [isAccountDrawerOpen, setIsAccountDrawerOpen] = useState(false)
-  const [shouldFocusSearch, setShouldFocusSearch] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  useEffect(() => {
-    if (isMobileMenuOpen && shouldFocusSearch) {
-      setTimeout(() => {
-        searchInputRef.current?.focus()
-      }, 80)
-      setShouldFocusSearch(false)
-    }
-  }, [isMobileMenuOpen, shouldFocusSearch])
-
-  const handleSearchIconClick = () => {
-    setShouldFocusSearch(true)
-    setIsMobileMenuOpen(true)
-    setIsAccountDrawerOpen(false)
-    setIsAccountDropdownOpen(false)
-  }
   const [categories, setCategories] = useState<Category[]>([])
   
   const navCategories = categories.filter(
@@ -75,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
   )
   
   // Consume customer/admin session from shared AuthContext
-  const { session, logout } = useAuth()
+  const { session, logout, isLoading } = useAuth()
   const [dynamicWishlistCount, setDynamicWishlistCount] = useState<number>(0)
   const { totalCount: cartTotalCount, openMiniCart } = useCart()
 
@@ -239,8 +222,8 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Mobile Header (Visible only on mobile/tablet < md) */}
           <div className="flex md:hidden items-center justify-between w-full h-[70px] relative">
-            {/* Left: Hamburger menu trigger (absolute positioning for perfect centering) */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+            {/* Left Actions: Hamburger Only (44px total width) */}
+            <div className="absolute left-2 min-[360px]:left-4 top-1/2 -translate-y-1/2 z-10 flex items-center">
               <button
                 onClick={toggleMobileMenu}
                 aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
@@ -252,22 +235,11 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Center: Brand Logo (absolute viewport centered) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
-              <ShreengarLogo className="w-[130px] xs:w-[140px] max-w-[140px] shrink-0 object-contain transition-transform active:scale-98 duration-150" />
+              <ShreengarLogo className="w-[125px] min-[360px]:w-[140px] xs:w-[150px] max-w-[155px] shrink-0 object-contain transition-transform active:scale-98 duration-150" />
             </div>
 
-            {/* Right: Cart and Account triggers (absolute positioning) */}
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center space-x-1">
-              {/* Search Icon */}
-              <button
-                type="button"
-                onClick={handleSearchIconClick}
-                className="p-2 text-foreground hover:text-gold transition-transform active:scale-90 duration-150 cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                title="Search"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
+            {/* Right Actions: Cart & Account (88px total width) */}
+            <div className="absolute right-2 min-[360px]:right-4 top-1/2 -translate-y-1/2 z-10 flex items-center space-x-0.5">
               {/* Cart Icon */}
               <button
                 onClick={() => {
@@ -401,59 +373,46 @@ export const Header: React.FC<HeaderProps> = ({
                           <p className="text-xs font-bold text-foreground truncate mt-0.5">{session.email}</p>
                         </div>
 
-                        {session.type === 'admin' ? (
-                          <>
-                            <Link
-                              href="/admin/dashboard"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
-                              <span>Admin Dashboard</span>
-                            </Link>
-                            <Link
-                              href="/admin/settings"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <Settings className="w-4 h-4 text-muted-foreground" />
-                              <span>Admin Settings</span>
-                            </Link>
-                          </>
+                        {isLoading ? (
+                          <div className="px-4 py-2 space-y-2.5 animate-pulse">
+                            <div className="h-6 bg-surface-muted rounded-lg w-full animate-pulse" />
+                            <div className="h-6 bg-surface-muted rounded-lg w-full animate-pulse" />
+                          </div>
                         ) : (
                           <>
-                            <Link
-                              href="/account"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <User className="w-4 h-4 text-muted-foreground" />
-                              <span>My Profile</span>
-                            </Link>
-                            <Link
-                              href="/orders"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-                              <span>Order History</span>
-                            </Link>
-                            <Link
-                              href="/addresses"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                              <span>Saved Addresses</span>
-                            </Link>
-                            <Link
-                              href="/settings"
-                              onClick={() => setIsAccountDropdownOpen(false)}
-                              className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
-                            >
-                              <Settings className="w-4 h-4 text-muted-foreground" />
-                              <span>Preferences</span>
-                            </Link>
+                            {getAccountNavigation(session.type === 'admin' ? 'admin' : (session as any).role).map((item) => (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={() => setIsAccountDropdownOpen(false)}
+                                className="flex items-center space-x-3 px-4 py-2.5 text-xs text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-colors"
+                              >
+                                <item.icon className="w-4 h-4 text-muted-foreground" />
+                                <span>{item.label}</span>
+                              </Link>
+                            ))}
+ 
+                            {mounted && (
+                              <div className="flex items-center justify-between px-3.5 py-2 bg-surface-muted/50 rounded-xl border border-border-warm/50 mx-2.5 my-1.5 font-sans">
+                                <span className="text-[10px] font-bold text-foreground uppercase tracking-wider select-none">Appearance</span>
+                                <div className="flex items-center space-x-0.5 bg-surface-muted rounded-full p-0.5 border border-border/40">
+                                  <button
+                                    onClick={() => setTheme('light')}
+                                    className={`p-1.5 rounded-full transition-colors min-w-[28px] min-h-[28px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'light' ? 'bg-surface text-accent shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                                    aria-label="Light mode"
+                                  >
+                                    <Sun className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setTheme('dark')}
+                                    className={`p-1.5 rounded-full transition-colors min-w-[28px] min-h-[28px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'dark' ? 'bg-surface text-accent shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
+                                    aria-label="Dark mode"
+                                  >
+                                    <Moon className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </>
                         )}
 
@@ -490,7 +449,6 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="md:hidden border-t border-border bg-surface-muted px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in fade-in duration-200">
             <form action="/shop" method="GET" className="relative w-full">
               <input
-                ref={searchInputRef}
                 type="text"
                 name="search"
                 placeholder="Search Anarkalis, Kurtis, Sarees..."
@@ -593,7 +551,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-serif font-bold text-base text-foreground leading-snug line-clamp-1">
-                        {session.fullName || 'Customer'}
+                        {session.fullName || (session.type === 'admin' || (session as any).role === 'admin' ? 'Admin' : 'Customer')}
                       </h3>
                       <span className="text-xs text-muted-foreground font-mono block truncate mt-0.5">
                         {session.email}
@@ -617,52 +575,25 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Links */}
               <nav className="flex flex-col space-y-1">
-                {hasSession ? (
+                {isLoading ? (
+                  <div className="space-y-2.5 py-4 animate-pulse">
+                    <div className="h-10 bg-surface-muted rounded-xl w-full" />
+                    <div className="h-10 bg-surface-muted rounded-xl w-full" />
+                    <div className="h-10 bg-surface-muted rounded-xl w-full" />
+                  </div>
+                ) : hasSession ? (
                   <>
-                    <Link
-                      href="/account"
-                      onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
-                    >
-                      <CircleUserRound className="w-[20px] h-[20px] text-muted-foreground" />
-                      <span>My Account</span>
-                    </Link>
-
-                    <Link
-                      href="/orders"
-                      onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
-                    >
-                      <Package className="w-[20px] h-[20px] text-muted-foreground" />
-                      <span>My Orders</span>
-                    </Link>
-
-                    <Link
-                      href="/wishlist"
-                      onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
-                    >
-                      <Heart className="w-[20px] h-[20px] text-muted-foreground" />
-                      <span>Wishlist</span>
-                    </Link>
-
-                    <Link
-                      href="/addresses"
-                      onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
-                    >
-                      <MapPin className="w-[20px] h-[20px] text-muted-foreground" />
-                      <span>Addresses</span>
-                    </Link>
-
-                    <Link
-                      href="/settings"
-                      onClick={() => setIsAccountDrawerOpen(false)}
-                      className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
-                    >
-                      <Settings className="w-[20px] h-[20px] text-muted-foreground" />
-                      <span>Settings</span>
-                    </Link>
+                    {getAccountNavigation(session.type === 'admin' ? 'admin' : (session as any).role).map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsAccountDrawerOpen(false)}
+                        className="flex items-center space-x-3 px-3 h-[50px] rounded-xl text-foreground hover:bg-surface-muted hover:text-accent font-medium transition-all active:scale-[0.98] duration-150"
+                      >
+                        <item.icon className="w-[20px] h-[20px] text-muted-foreground" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
                   </>
                 ) : (
                   <div className="pt-2 flex flex-col space-y-2.5">
@@ -693,14 +624,14 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="flex items-center space-x-1 bg-surface-muted rounded-full p-0.5 border border-border/40">
                     <button
                       onClick={() => setTheme('light')}
-                      className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${theme === 'light' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'light' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                       aria-label="Light mode"
                     >
                       <Sun className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setTheme('dark')}
-                      className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${theme === 'dark' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`p-2 rounded-full transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer ${resolvedTheme === 'dark' ? 'bg-surface text-accent shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                       aria-label="Dark mode"
                     >
                       <Moon className="w-4 h-4" />

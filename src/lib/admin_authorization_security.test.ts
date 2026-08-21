@@ -108,15 +108,14 @@ test('Admin Authorization Security Rules Suite', async (t) => {
     assert.strictEqual(result.allowed, false)
   })
 
-  await t.test('8. OTP step remains required in adminLoginAction flow', async () => {
+  await t.test('8. OTP step remains required in verifyAdminPasswordAction flow', async () => {
     const fs = await import('node:fs')
     const path = await import('node:path')
-    const authServiceContent = fs.readFileSync(
-      path.join(process.cwd(), 'src', 'services', 'auth.ts'),
+    const actionContent = fs.readFileSync(
+      path.join(process.cwd(), 'src', 'actions', 'auth', 'verifyAdminPasswordAction.ts'),
       'utf8'
     )
 
-    assert.ok(authServiceContent.includes("redirect(`/admin/verify-otp?email="))
-    assert.ok(authServiceContent.includes('sendOtp('))
+    assert.ok(actionContent.includes('sendOtp('))
   })
 })

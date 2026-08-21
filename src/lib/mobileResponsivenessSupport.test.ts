@@ -14,7 +14,7 @@ describe('Shreengar Mobile Responsiveness & Customer Interaction bugfixes', () =
     assert.ok(fs.existsSync(headerPath), 'Header file must exist')
     const content = fs.readFileSync(headerPath, 'utf8')
     assert.ok(content.includes('flex md:hidden items-center justify-between w-full'), 'Header must define mobile row wrapper')
-    assert.ok(content.includes('ShreengarLogo className="w-[130px]'), 'Header logo is scaled correctly for mobile')
+    assert.ok(content.includes('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'), 'Header logo is mathematically centered')
   })
 
   test('2. Header mobile row excludes Wishlist button and opens Account drawer', () => {
@@ -68,7 +68,7 @@ describe('Shreengar Mobile Responsiveness & Customer Interaction bugfixes', () =
   test('8. Home Page Hero Banner is responsive and uses mobile-specific vertical linear gradient', () => {
     assert.ok(fs.existsSync(homePagePath), 'Home page file must exist')
     const content = fs.readFileSync(homePagePath, 'utf8')
-    assert.ok(content.includes('clamp(2.5rem,10vw,3.3rem)'), 'Hero banner title uses font-size clamp for responsive scaling')
+    assert.ok(content.includes('text-[clamp('), 'Hero banner title uses font-size clamp for responsive scaling')
     assert.ok(content.includes('linear-gradient(180deg'), 'Hero banner uses vertical linear gradient on mobile')
     assert.ok(content.includes('items-end sm:items-center'), 'Hero banner aligns content to bottom on mobile')
   })

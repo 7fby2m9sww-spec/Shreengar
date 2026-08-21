@@ -6,7 +6,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   try {
     await checkAdminAuth('view_products')
   } catch (err) {
-    redirect('/admin/login') // or a 403 page
+    redirect('/auth/login') // or a 403 page
   }
   return <>{children}</>
 }

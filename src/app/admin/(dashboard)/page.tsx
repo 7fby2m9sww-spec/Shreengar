@@ -187,23 +187,25 @@ export default function AdminDashboardPage() {
               <p className="text-[10px] text-gray-400">Current year sales database sum is ₹0.</p>
             </div>
           ) : (
-            <div className="h-44 bg-[#FAF8F5] rounded-xl border border-gray-100 p-4 flex items-end justify-between gap-2">
-              {monthlySales.map((item, idx) => {
-                const heightPercent = (item.sales / maxMonthlySales) * 100
-                return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group cursor-pointer">
-                    <div
-                      className="w-full bg-[#5C0B26] group-hover:bg-[#8C3A57] rounded-t-md transition-all relative"
-                      style={{ height: `${Math.max(heightPercent, 4)}%` }}
-                    >
-                      <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] px-1.5 py-0.5 rounded font-mono transition-opacity whitespace-nowrap z-10">
-                        {formatINR(item.sales)}
-                      </span>
+            <div className="overflow-x-auto custom-scrollbar">
+              <div className="h-44 bg-[#FAF8F5] rounded-xl border border-gray-100 p-4 flex items-end justify-between gap-2 min-w-[500px]">
+                {monthlySales.map((item, idx) => {
+                  const heightPercent = (item.sales / maxMonthlySales) * 100
+                  return (
+                    <div key={idx} className="flex-1 flex flex-col items-center gap-1 group cursor-pointer">
+                      <div
+                        className="w-full bg-[#5C0B26] group-hover:bg-[#8C3A57] rounded-t-md transition-all relative"
+                        style={{ height: `${Math.max(heightPercent, 4)}%` }}
+                      >
+                        <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] px-1.5 py-0.5 rounded font-mono transition-opacity whitespace-nowrap z-10">
+                          {formatINR(item.sales)}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono text-gray-400">{item.month}</span>
                     </div>
-                    <span className="text-[9px] font-mono text-gray-400">{item.month}</span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>

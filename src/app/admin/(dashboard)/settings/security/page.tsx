@@ -111,7 +111,7 @@ export default function AdminSecuritySettingsPage() {
 
       // Redirect user to login after short delay to establish new credentials session
       setTimeout(() => {
-        window.location.href = '/admin/login'
+        window.location.href = '/auth/login'
       }, 3000)
     }
   }

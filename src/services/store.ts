@@ -242,15 +242,15 @@ export async function getWishlistForUser(userId: string): Promise<Product[]> {
     const supabase = createAdminClient()
     const { data, error } = await supabase
       .from('wishlist')
-      .select('*, product:products(*)')
+      .select('id, variant:product_variants(id, product:products(*))')
       .eq('user_id', userId)
 
     if (!error && data) {
       // Map the product columns correctly (name -> title, selling_price -> price, mrp -> compare_at_price)
       return data
         .map((item: any) => {
-          if (!item.product) return null;
-          const p = item.product;
+          const p = item.variant?.product;
+          if (!p) return null;
           return {
             id: p.id,
             title: p.name || '',
